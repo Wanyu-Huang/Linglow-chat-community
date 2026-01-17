@@ -1,0 +1,54 @@
+name: linglow-chat
+
+services:
+  app:
+    container_name: linglow-chat-app
+    build: .
+    image: linglow-chat-app:latest
+    ports:
+      - "8816:8816"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-8816}
+      - DB_HOST=mysql
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME:-linglow_chat}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - VAPID_PUBLIC_KEY=${VAPID_PUBLIC_KEY:-}
+      - VAPID_PRIVATE_KEY=${VAPID_PRIVATE_KEY:-}
+      - VAPID_MAILTO=${VAPID_MAILTO:-}
+    restart: unless-stopped
+    networks:
+      - linglow-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: linglow-chat-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME:-linglow_chat}
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD}"]
+      timeout: 20s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - linglow-network
+
+networks:
+  linglow-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
