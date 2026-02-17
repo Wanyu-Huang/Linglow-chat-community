@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入测试</title>
+</head>
+<body>
+    <h1>角色卡导入测试</h1>
+    
+    <div style="margin: 20px;">
+        <input type="file" id="test-file" accept=".json,.png">
+        <button onclick="testImport()">测试导入</button>
+    </div>
+    
+    <div id="result" style="margin: 20px; padding: 10px; background: #f0f0f0;"></div>
+
+    <script src="character-import.js"></script>
+    <script>
+        async function testImport() {
+            const fileInput = document.getElementById('test-file');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请先选择文件');
+                return;
+            }
+            
+            const result = document.getElementById('result');
+            result.innerHTML = '正在解析...';
+            
+            try {
+                // 测试解析
+                const cardData = await parseCharacterCard(file);
+                
+                result.innerHTML = `
+                    <h3>✅ 解析成功</h3>
+                    <pre>${JSON.stringify(cardData, null, 2)}</pre>
+                    <hr>
+                    <p>现在应该跳转到 character-info.html</p>
+                    <button onclick="jumpToInfo()">手动跳转测试</button>
+                `;
+                
+                window.testCardData = cardData;
+                
+            } catch (error) {
+                result.innerHTML = `
+                    <h3>❌ 解析失败</h3>
+                    <p style="color: red;">${error.message}</p>
+                    <pre>${error.stack}</pre>
+                `;
+            }
+        }
+        
+        function jumpToInfo() {
+            if (!window.testCardData) {
+                alert('没有数据');
+                return;
+            }
+            
+            const encodedData = encodeURIComponent(JSON.stringify(window.testCardData));
+            window.location.href = `character-info.html?cardData=${encodedData}`;
+        }
+    </script>
+</body>
+</html>
