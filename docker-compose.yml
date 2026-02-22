@@ -1,10 +1,10 @@
-name: linglow-chat
+name: linglow-chat-community
 
 services:
   app:
-    container_name: linglow-chat-app
+    container_name: linglow-chat-community-app
     build: .
-    image: linglow-chat-app:latest
+    image: wanyuhuang/linglow-chat-community-app:v0.9.0
     ports:
       - "8816:3000"
     depends_on:
@@ -30,7 +30,8 @@ services:
 
   adminer:
     image: adminer:latest
-    container_name: linglow-chat-adminer
+    # 3. 修改容器名称
+    container_name: linglow-chat-community-adminer
     ports:
       - "8817:8080"
     environment:
@@ -44,7 +45,8 @@ services:
 
   mysql:
     image: mysql:8.0
-    container_name: linglow-chat-mysql
+    # 4. 修改容器名称
+    container_name: linglow-chat-community-mysql
     command: --default-authentication-plugin=mysql_native_password --max_allowed_packet=256M --innodb-buffer-pool-size=512M
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}

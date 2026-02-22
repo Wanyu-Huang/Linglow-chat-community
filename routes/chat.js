@@ -69,12 +69,13 @@ router.get('/history/:characterId', async (req, res) => {
       [userId, characterId]
     );
 
-    // 默认返回最新 limit 条（按 seq DESC 取，然后反转成正序）
+    // 默认返回最新 limit 条（按 seq/id DESC 取，然后反转成正序）
     const [messages] = await db.query(
-      `SELECT message_id as id, role, content, timestamp, metadata, seq
+      `SELECT message_id as id, role, content, timestamp, metadata,
+              COALESCE(seq, id) as seq
        FROM messages
        WHERE user_id = ? AND character_id = ?
-       ORDER BY seq DESC, id DESC
+       ORDER BY COALESCE(seq, id) DESC
        LIMIT ?`,
       [userId, characterId, limit]
     );
@@ -107,10 +108,11 @@ router.get('/history/:characterId/before', async (req, res) => {
 
     // 取 seq < beforeSeq 的最新 limit 条
     const [messages] = await db.query(
-      `SELECT message_id as id, role, content, timestamp, metadata, seq
+      `SELECT message_id as id, role, content, timestamp, metadata,
+              COALESCE(seq, id) as seq
        FROM messages
-       WHERE user_id = ? AND character_id = ? AND seq < ?
-       ORDER BY seq DESC, id DESC
+       WHERE user_id = ? AND character_id = ? AND COALESCE(seq, id) < ?
+       ORDER BY COALESCE(seq, id) DESC
        LIMIT ?`,
       [userId, characterId, beforeSeq, limit]
     );
@@ -128,6 +130,85 @@ router.get('/history/:characterId/before', async (req, res) => {
     console.error('Get history before error:', error);
     res.status(500).json({ error: '获取历史记录失败' });
   }
+});
+
+// 前端发送用户消息：只存库 + 更新session，不调AI
+// POST /api/chat/message  body: { characterId, messageId, content, waitSeconds? }
+router.post('/message', async (req, res) => {
+  try {
+    const { characterId, messageId, content, waitSeconds } = req.body;
+    const userId = req.session.userId;
+
+    if (!characterId || !content) {
+      return res.status(400).json({ error: '缺少必要参数' });
+    }
+
+    const msgId = messageId || `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // 取当前最大seq
+    const [[{ baseSeq }]] = await db.query(
+      'SELECT COALESCE(MAX(seq), -1) + 1 as baseSeq FROM messages WHERE user_id = ? AND character_id = ?',
+      [userId, characterId]
+    );
+
+    // 存消息
+    await db.query(
+      `INSERT IGNORE INTO messages (user_id, character_id, message_id, role, content, seq)
+       VALUES (?, ?, ?, 'user', ?, ?)`,
+      [userId, characterId, msgId, content, baseSeq]
+    );
+
+    // 读角色config里的batchWaitTime（默认7）
+    const wait = parseInt(waitSeconds) || 7;
+
+    // upsert chat_sessions：每次用户发消息，重置计时（triggered=0，更新时间，累加pending_count）
+    await db.query(
+      `INSERT INTO chat_sessions (user_id, character_id, last_user_msg_at, pending_count, triggered, wait_seconds)
+       VALUES (?, ?, NOW(), 1, 0, ?)
+       ON DUPLICATE KEY UPDATE
+         last_user_msg_at = NOW(),
+         pending_count = pending_count + 1,
+         triggered = 0,
+         wait_seconds = VALUES(wait_seconds)`,
+      [userId, characterId, wait]
+    );
+
+    res.json({ success: true, messageId: msgId, seq: baseSeq });
+  } catch (e) {
+    console.error('[CHAT] POST /message error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+const sseHub = require('../services/sseHub');
+
+// SSE 长连接：前端建立后，后端主动推新消息
+// GET /api/chat/stream/:characterId?afterSeq=N
+router.get('/stream/:characterId', (req, res) => {
+  const { characterId } = req.params;
+  const userId = req.session.userId;
+  if (!userId) return res.status(401).end();
+
+  // SSE 头
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no'); // 关闭 nginx 缓冲
+  res.flushHeaders();
+
+  // 注册连接
+  sseHub.register(userId, characterId, res);
+
+  // 发送心跳（每 25 秒），防止代理/浏览器超时断开
+  const heartbeat = setInterval(() => {
+    try { res.write(': heartbeat\n\n'); } catch (_) {}
+  }, 25000);
+
+  // 客户端断开时清理
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    sseHub.unregister(userId, characterId, res);
+  });
 });
 
 router.post('/send', async (req, res) => {
@@ -383,10 +464,17 @@ router.post('/history/:characterId/append', async (req, res) => {
 
     const msgId = message.id || `auto_${characterId}_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
 
+    // 取当前最大 seq，新消息续排
+    const [[{ maxSeq }]] = await db.query(
+      'SELECT COALESCE(MAX(COALESCE(seq, id)), -1) as maxSeq FROM messages WHERE user_id = ? AND character_id = ?',
+      [userId, characterId]
+    );
+
     await db.query(
-      `INSERT IGNORE INTO messages (user_id, character_id, message_id, role, content, metadata)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [userId, characterId, msgId, message.role, message.content, safeStringify(message.metadata, null)]
+      `INSERT IGNORE INTO messages (user_id, character_id, message_id, role, content, metadata, seq)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userId, characterId, msgId, message.role, message.content,
+       safeStringify(message.metadata, null), maxSeq + 1]
     );
 
     res.json({ success: true });

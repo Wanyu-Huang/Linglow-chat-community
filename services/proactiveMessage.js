@@ -160,12 +160,27 @@ ${character.system_prompt || '你是一个友好的AI助手。'}
     // 生成消息ID
     const messageId = `msg_proactive_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-    // 保存到数据库
-    await db.query(
-      `INSERT INTO messages (user_id, character_id, message_id, role, content) 
-       VALUES (?, ?, ?, 'assistant', ?)`,
-      [userId, characterId, messageId, messageContent]
+    // 取当前最大seq
+    const [[{ nextSeq }]] = await db.query(
+      'SELECT COALESCE(MAX(seq), -1) + 1 as nextSeq FROM messages WHERE user_id = ? AND character_id = ?',
+      [userId, characterId]
     );
+
+    // 保存到数据库
+    const msgTimestamp = new Date().toISOString();
+    await db.query(
+      `INSERT INTO messages (user_id, character_id, message_id, role, content, seq) 
+       VALUES (?, ?, ?, 'assistant', ?, ?)`,
+      [userId, characterId, messageId, messageContent, nextSeq]
+    );
+
+    // SSE 推送给在线前端
+    try {
+      const sseHub = require('./sseHub');
+      sseHub.push(userId, characterId, 'message', {
+        id: messageId, role: 'assistant', content: messageContent, timestamp: msgTimestamp, seq: nextSeq
+      });
+    } catch (_) {}
 
     // 计算下次发送时间（使用随机间隔）
     const nextTime = calculateNextTime(

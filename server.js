@@ -16,7 +16,9 @@ const apiConfigRoutes = require('./routes/apiConfig');
 const db = require('./config/database');
 const { startProactiveMessaging } = require('./services/proactiveMessage');
 const { startSummaryWorker } = require('./services/summaryWorker');
+const { startBatchWorker } = require('./services/batchWorker');
 const summaryTaskRoutes = require('./routes/summaryTask');
+const walletRoutes = require('./routes/wallet');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +73,7 @@ app.use('/api/push',      pushRoutes);
 app.use('/api/config',    configRoutes);
 app.use('/api/api-configs', apiConfigRoutes);
 app.use('/api/summary-task', summaryTaskRoutes);
+app.use('/api/wallet',      walletRoutes);
 
 // 诊断接口
 app.get('/api/debug/status', async (req, res) => {
@@ -314,6 +317,44 @@ async function ensureColumns() {
     INDEX idx_status (status)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
 
+  // 批量发送会话状态表
+  await db.query(`CREATE TABLE IF NOT EXISTS chat_sessions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    character_id VARCHAR(100) NOT NULL,
+    last_user_msg_at DATETIME NOT NULL,
+    pending_count INT NOT NULL DEFAULT 0,
+    triggered TINYINT(1) NOT NULL DEFAULT 0,
+    wait_seconds INT NOT NULL DEFAULT 7,
+    UNIQUE KEY uniq_user_char (user_id, character_id),
+    INDEX idx_triggered (triggered, last_user_msg_at),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  // 钱包余额表
+  await db.query(`CREATE TABLE IF NOT EXISTS wallets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL UNIQUE,
+    balance DECIMAL(12,2) NOT NULL DEFAULT 200.00,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
+  // 钱包流水表
+  await db.query(`CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    character_id VARCHAR(100),
+    type ENUM('in','out') NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    note VARCHAR(255),
+    from_name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_user_created (user_id, created_at)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`);
+
   // messages 加 seq 索引（若没有）
   try {
     await db.query('CREATE INDEX idx_seq ON messages (user_id, character_id, seq)');
@@ -358,6 +399,7 @@ async function startServer() {
 
     startProactiveMessaging();
     startSummaryWorker();
+    startBatchWorker();
 
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`🚀 Linglow Chat 运行在端口 ${PORT}`);

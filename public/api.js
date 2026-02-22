@@ -258,6 +258,31 @@ const PushAPI = {
     }
 };
 
+// ==================== 钱包API ====================
+
+const WalletAPI = {
+    // 获取余额和流水
+    async get() {
+        return await apiCall('/wallet');
+    },
+
+    // 记录一笔流水并更新余额
+    async transaction(type, amount, { note = '', fromName = '', characterId = null } = {}) {
+        return await apiCall('/wallet/transaction', {
+            method: 'POST',
+            body: JSON.stringify({ type, amount, note, fromName, characterId })
+        });
+    },
+
+    // 直接设置余额（初始化/修正用）
+    async setBalance(balance) {
+        return await apiCall('/wallet/set-balance', {
+            method: 'POST',
+            body: JSON.stringify({ balance })
+        });
+    }
+};
+
 // ==================== 导出 ====================
 
 window.LinglowAPI = {
@@ -266,5 +291,6 @@ window.LinglowAPI = {
     Character: CharacterAPI,
     Chat: ChatAPI,
     Persona: PersonaAPI,
-    Push: PushAPI
+    Push: PushAPI,
+    Wallet: WalletAPI
 };

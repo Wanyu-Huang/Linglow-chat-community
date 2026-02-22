@@ -20,6 +20,367 @@
 </head>
 <body>
 
+        <!-- ===== 钱包页面 ===== -->
+        <div id="wallet-page" class="page">
+            <header class="header">
+                <button onclick="showPage('me-page')">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <span class="header-title">钱包</span>
+                <span></span>
+            </header>
+            <div class="content" style="background:#EDEDED;overflow-y:auto;">
+                <!-- 余额卡片 -->
+                <div style="background:linear-gradient(135deg,#07c160 0%,#06ae56 100%);margin:0;padding:32px 24px 28px;color:#fff;">
+                    <div style="font-size:13px;opacity:0.85;margin-bottom:8px;">零钱余额</div>
+                    <div style="display:flex;align-items:baseline;gap:6px;">
+                        <span style="font-size:15px;font-weight:400;">¥</span>
+                        <span id="wallet-balance-display" style="font-size:42px;font-weight:600;letter-spacing:-1px;">0.00</span>
+                    </div>
+                </div>
+
+                <!-- 快捷操作 -->
+                <div style="background:#fff;margin-bottom:10px;padding:20px 0;">
+                    <div style="display:flex;justify-content:space-around;">
+                        <div onclick="window._transferOriginPage='wallet-page';showPage('transfer-page')" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">
+                            <div style="width:52px;height:52px;background:#07c160;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                                    <path d="M12 5v14M5 12l7-7 7 7"/>
+                                </svg>
+                            </div>
+                            <span style="font-size:13px;color:#333;">转账</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4;">
+                            <div style="width:52px;height:52px;background:#ff9800;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                                    <rect x="3" y="8" width="18" height="13" rx="2"/>
+                                    <path d="M8 8V6a4 4 0 0 1 8 0v2"/>
+                                </svg>
+                            </div>
+                            <span style="font-size:13px;color:#333;">红包</span>
+                        </div>
+                        <div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4;">
+                            <div style="width:52px;height:52px;background:#2196f3;border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 8v4l3 3"/>
+                                </svg>
+                            </div>
+                            <span style="font-size:13px;color:#333;">账单</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 交易记录 -->
+                <div style="background:#fff;">
+                    <div style="padding:14px 16px;font-size:14px;font-weight:600;color:#333;border-bottom:1px solid #EDEDED;">交易记录</div>
+                    <div id="wallet-tx-list" style="min-height:80px;">
+                        <div style="text-align:center;color:#ccc;font-size:14px;padding:40px 0;">暂无交易记录</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 转账页面（用户→角色）===== -->
+        <div id="transfer-page" class="page">
+            <header class="header">
+                <button onclick="showPage(window._transferOriginPage || 'wallet-page')">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+                <span class="header-title">转账</span>
+                <span></span>
+            </header>
+            <div class="content" style="background:#EDEDED;overflow-y:auto;">
+                <div style="background:#fff;margin-bottom:10px;padding:24px 20px;">
+                    <!-- 收款方 -->
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
+                        <div id="transfer-avatar" style="width:52px;height:52px;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;overflow:hidden;"></div>
+                        <div>
+                            <div id="transfer-name" style="font-size:17px;font-weight:500;color:#333;margin-bottom:2px;">角色昵称</div>
+                            <div style="font-size:13px;color:#999;">收款方</div>
+                        </div>
+                    </div>
+                    <!-- 金额输入 -->
+                    <div style="border-bottom:2px solid #07c160;padding-bottom:12px;margin-bottom:16px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:28px;color:#333;font-weight:400;">¥</span>
+                            <input id="transfer-amount-input" type="number" min="0" step="0.01" placeholder="0.00"
+                                style="flex:1;border:none;outline:none;font-size:36px;font-weight:500;color:#333;background:transparent;width:0;">
+                        </div>
+                    </div>
+                    <!-- 当前余额提示 -->
+                    <div style="font-size:13px;color:#999;margin-bottom:20px;">当前余额：¥<span id="transfer-my-balance">0.00</span></div>
+                    <!-- 备注 -->
+                    <input id="transfer-note-input" type="text" placeholder="添加备注（选填）" maxlength="30"
+                        style="width:100%;box-sizing:border-box;padding:10px 0;border:none;border-bottom:1px solid #EDEDED;outline:none;font-size:15px;color:#333;background:transparent;margin-bottom:8px;">
+                </div>
+                <div style="padding:0 20px;">
+                    <button onclick="confirmTransferToChar()" style="width:100%;padding:14px;background:#07c160;color:#fff;border:none;border-radius:6px;font-size:17px;font-weight:500;cursor:pointer;">转账</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 转账成功全屏遮罩 ===== -->
+        <div id="transfer-success-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:16px;width:280px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+                <div style="background:#07c160;padding:28px 20px;text-align:center;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                    </div>
+                    <div style="color:#fff;font-size:18px;font-weight:600;">转账成功</div>
+                    <div id="ts-amount" style="color:rgba(255,255,255,0.9);font-size:14px;margin-top:6px;"></div>
+                </div>
+                <div style="padding:20px;text-align:center;">
+                    <div id="ts-detail" style="font-size:13px;color:#999;margin-bottom:20px;"></div>
+                    <button onclick="document.getElementById('transfer-success-overlay').style.display='none';showPage('wallet-page');"
+                        style="width:100%;padding:12px;background:#07c160;color:#fff;border:none;border-radius:6px;font-size:16px;cursor:pointer;">完成</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 角色→用户：收款通知弹窗 ===== -->
+        <div id="receive-money-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:16px;width:280px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+                <div style="background:#07c160;padding:28px 20px;text-align:center;">
+                    <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+                        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 19V5M5 12l7 7 7-7"/>
+                        </svg>
+                    </div>
+                    <div style="color:#fff;font-size:18px;font-weight:600;">收到转账</div>
+                    <div id="rm-amount" style="color:rgba(255,255,255,0.9);font-size:28px;font-weight:600;margin-top:6px;"></div>
+                </div>
+                <div style="padding:20px;text-align:center;">
+                    <div id="rm-from" style="font-size:14px;color:#666;margin-bottom:4px;"></div>
+                    <div id="rm-note" style="font-size:13px;color:#999;margin-bottom:20px;"></div>
+                    <button onclick="document.getElementById('receive-money-overlay').style.display='none';"
+                        style="width:100%;padding:12px;background:#07c160;color:#fff;border:none;border-radius:6px;font-size:16px;cursor:pointer;">收下</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 聊天加号菜单面板 ===== -->
+        <div id="plus-menu-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;background:#f7f7f7;border-top:1px solid #ddd;z-index:2000;padding:20px 16px 36px;">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
+                <!-- 转账 -->
+                <div onclick="openTransferFromChat()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">
+                    <div style="width:56px;height:56px;background:linear-gradient(135deg,#f5a11c,#f0920a);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+                            <circle cx="15" cy="15" r="12" stroke="white" stroke-width="2"/>
+                            <path d="M24 11H4M24 11l-5-5M24 11l-5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6 19H26M6 19l5-5M6 19l5 5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:12px;color:#333;">转账</span>
+                </div>
+                <!-- 收款 -->
+                <div onclick="openCollectFromChat()" style="display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;">
+                    <div style="width:56px;height:56px;background:linear-gradient(135deg,#07c160,#06ad56);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2v20M2 12h20"/>
+                            <path d="M17 7l-5 5-5-5"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:12px;color:#333;">收款</span>
+                </div>
+                <!-- 红包（占位） -->
+                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4;">
+                    <div style="width:56px;height:56px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e53935" stroke-width="2" stroke-linecap="round">
+                            <rect x="3" y="8" width="18" height="13" rx="2"/>
+                            <path d="M8 8V6a4 4 0 0 1 8 0v2"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:12px;color:#333;">红包</span>
+                </div>
+                <!-- 图片（占位） -->
+                <div style="display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0.4;">
+                    <div style="width:56px;height:56px;background:#fff;border-radius:12px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.1);">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2196f3" stroke-width="2" stroke-linecap="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5" fill="#2196f3"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                    </div>
+                    <span style="font-size:12px;color:#333;">图片</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 转账详情页（点击气泡后进入，可收款或退回）===== -->
+        <div id="transfer-detail-page" class="page">
+            <header class="header">
+                <button onclick="showPage('chat-page')">
+                    <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
+                        <path d="M9 1L1 9L9 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <span class="header-title">转账详情</span>
+                <span></span>
+            </header>
+            <div class="content" style="background:#EDEDED;overflow-y:auto;">
+                <!-- 橙色大卡片 -->
+                <div style="background:linear-gradient(180deg,#f5a11c,#f0920a);padding:36px 24px 32px;">
+                    <div style="display:flex;align-items:center;gap:16px;">
+                        <div id="td-avatar" style="width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:24px;overflow:hidden;"></div>
+                        <div>
+                            <div id="td-label" style="font-size:15px;color:rgba(255,255,255,0.9);margin-bottom:6px;"></div>
+                            <div id="td-amount" style="font-size:38px;font-weight:700;color:#fff;letter-spacing:1px;line-height:1;">¥ 0.00</div>
+                        </div>
+                    </div>
+                    <div id="td-note" style="margin-top:18px;font-size:13px;color:rgba(255,255,255,0.85);display:none;">
+                        <span style="opacity:0.7;">备注：</span><span id="td-note-text"></span>
+                    </div>
+                </div>
+                <!-- 详情行 -->
+                <div style="background:#fff;margin-top:10px;">
+                    <div style="padding:15px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0;">
+                        <span style="color:#999;font-size:14px;">转账方</span>
+                        <span id="td-from" style="color:#333;font-size:14px;"></span>
+                    </div>
+                    <div style="padding:15px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f0f0f0;">
+                        <span style="color:#999;font-size:14px;">状态</span>
+                        <span id="td-status" style="font-size:14px;"></span>
+                    </div>
+                    <div style="padding:15px 20px;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="color:#999;font-size:14px;">转账时间</span>
+                        <span id="td-time" style="color:#333;font-size:14px;"></span>
+                    </div>
+                </div>
+                <!-- 收款按钮区（仅对方转给我时显示） -->
+                <div id="td-accept-area" style="display:none;padding:30px 20px 16px;">
+                    <button onclick="doTransferAccept()" style="width:100%;padding:15px;background:#f5a11c;border:none;border-radius:6px;font-size:18px;font-weight:600;color:#fff;cursor:pointer;letter-spacing:1px;">收款</button>
+                    <div style="text-align:center;margin-top:16px;">
+                        <span onclick="doTransferRefund()" style="font-size:13px;color:#999;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">退回</span>
+                    </div>
+                </div>
+                <!-- 我发出的，只读，无操作 -->
+                <div id="td-readonly-area" style="display:none;padding:24px 20px;text-align:center;color:#bbb;font-size:13px;">
+                    等待对方操作
+                </div>
+                <div style="text-align:center;padding:16px 0 30px;font-size:12px;color:#ccc;">微信转账</div>
+            </div>
+        </div>
+
+        <!-- ===== 收款页面（角色向用户要钱）===== -->
+        <div id="collect-page" class="page">
+            <header class="header">
+                <button onclick="showPage(window._collectOriginPage||'chat-page')">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span class="header-title">收款</span>
+                <span></span>
+            </header>
+            <div class="content" style="background:#EDEDED;overflow-y:auto;">
+                <div style="background:#fff;margin-bottom:10px;padding:24px 20px;">
+                    <div style="display:flex;align-items:center;gap:14px;margin-bottom:28px;">
+                        <div id="collect-avatar" style="width:52px;height:52px;border-radius:6px;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0;overflow:hidden;"></div>
+                        <div>
+                            <div id="collect-name" style="font-size:17px;font-weight:500;color:#333;margin-bottom:2px;">角色昵称</div>
+                            <div style="font-size:13px;color:#999;">向对方收款</div>
+                        </div>
+                    </div>
+                    <div style="border-bottom:2px solid #07c160;padding-bottom:12px;margin-bottom:16px;">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:28px;color:#333;font-weight:400;">¥</span>
+                            <input id="collect-amount-input" type="number" min="0" step="0.01" placeholder="0.00"
+                                style="flex:1;border:none;outline:none;font-size:36px;font-weight:500;color:#333;background:transparent;width:0;">
+                        </div>
+                    </div>
+                    <input id="collect-note-input" type="text" placeholder="添加备注（选填）" maxlength="30"
+                        style="width:100%;box-sizing:border-box;padding:10px 0;border:none;border-bottom:1px solid #EDEDED;outline:none;font-size:15px;color:#333;background:transparent;margin-bottom:8px;">
+                </div>
+                <div style="padding:0 20px;">
+                    <button onclick="confirmCollectFromChar()" style="width:100%;padding:14px;background:#07c160;color:#fff;border:none;border-radius:6px;font-size:17px;font-weight:500;cursor:pointer;">发起收款</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 世界书条目编辑弹窗 ===== -->
+        <div id="wb-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99990;align-items:flex-end;justify-content:center;">
+            <div style="background:#fff;width:100%;max-height:88vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;overflow:hidden;">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eee;flex-shrink:0;">
+                    <button onclick="wbCloseModal()" style="background:none;border:none;font-size:15px;color:#999;cursor:pointer;padding:0;">取消</button>
+                    <span style="font-size:16px;font-weight:600;color:#333;" id="wb-modal-title">新建条目</span>
+                    <button onclick="wbSaveEntry()" style="background:none;border:none;font-size:15px;color:#07c160;font-weight:600;cursor:pointer;padding:0;">保存</button>
+                </div>
+                <div style="overflow-y:auto;padding:16px;flex:1;">
+                    <input type="hidden" id="wb-edit-id">
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">条目名称（备注用，不影响触发）</label>
+                        <input id="wb-edit-name" type="text" placeholder="例如：魔法系统" maxlength="40"
+                            style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">触发关键词 <span style="color:#999;font-size:12px;">（用逗号分隔，任意一个命中即触发）</span></label>
+                        <input id="wb-edit-keys" type="text" placeholder="例如：魔法,法术,咒语"
+                            style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;">
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <label style="font-size:13px;color:#555;display:block;margin-bottom:6px;">注入内容 <span style="color:#999;font-size:12px;">（命中时添加到系统提示末尾）</span></label>
+                        <textarea id="wb-edit-content" rows="6" placeholder="在这里描述这个关键词对应的世界观设定..."
+                            style="width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;"></textarea>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+                        <label style="font-size:13px;color:#555;">启用此条目</label>
+                        <label style="position:relative;display:inline-block;width:44px;height:24px;">
+                            <input type="checkbox" id="wb-edit-enabled" checked style="opacity:0;width:0;height:0;">
+                            <span id="wb-edit-enabled-slider" style="position:absolute;cursor:pointer;inset:0;background:#1AAD19;border-radius:24px;transition:.3s;">
+                                <span style="position:absolute;left:23px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;display:block;" id="wb-edit-enabled-knob"></span>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 状态字段编辑弹窗 ===== -->
+        <div id="status-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:99995;align-items:center;justify-content:center;">
+            <div style="background:#fff;border-radius:14px;width:280px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+                <div style="padding:18px 18px 10px;">
+                    <div id="status-edit-label" style="font-size:13px;color:#999;margin-bottom:8px;">编辑</div>
+                    <input id="status-edit-input" type="text" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #ddd;border-radius:6px;font-size:15px;outline:none;">
+                    <div id="status-edit-hint" style="font-size:11px;color:#bbb;margin-top:6px;"></div>
+                </div>
+                <div style="display:flex;border-top:1px solid #eee;">
+                    <button onclick="statusEditCancel()" style="flex:1;padding:13px;background:none;border:none;border-right:1px solid #eee;font-size:16px;color:#999;cursor:pointer;">取消</button>
+                    <button onclick="statusEditConfirm()" style="flex:1;padding:13px;background:none;border:none;font-size:16px;color:#07c160;font-weight:600;cursor:pointer;">确定</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 收藏页面 -->
+        <div id="favorites-page" class="page">
+            <header class="header">
+                <button onclick="showPage('me-page')">
+                    <svg width="10" height="18" viewBox="0 0 10 18" fill="none">
+                        <path d="M9 1L1 9L9 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <span class="header-title">收藏</span>
+                <button onclick="clearAllFavorites()" style="font-size: 14px; color: #ff3b30;">清空</button>
+            </header>
+            
+            <div class="content" style="background-color: #EDEDED; overflow-y: auto;">
+                <div id="favorites-container"></div>
+                
+                <!-- 空状态 -->
+                <div id="favorites-empty" style="display: none; padding: 100px 20px; text-align: center; color: #999;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">⭐</div>
+                    <div style="font-size: 16px; margin-bottom: 8px;">暂无收藏</div>
+                    <div style="font-size: 14px;">长按消息可添加到收藏</div>
+                </div>
+            </div>
+        </div>
+        
+
+
     <!-- 登录弹窗 -->
     <div class="login-modal" id="loginModal">
         <div class="login-box">
@@ -350,6 +711,23 @@
                 
                 <!-- 功能列表 -->
                 <div style="background: white; margin-bottom: 10px;">
+                    <!-- 钱包 -->
+                    <div onclick="openWalletPage()" style="display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #EDEDED; cursor: pointer;">
+                        <div style="width: 40px; height: 40px; background: #1aad19; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="5" width="20" height="14" rx="2"/>
+                                <path d="M16 12h.01"/>
+                                <path d="M2 10h20"/>
+                            </svg>
+                        </div>
+                        <div style="flex: 1; font-size: 16px; color: #333;">钱包</div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span id="me-wallet-balance" style="font-size: 14px; color: #07c160; font-weight: 500;"></span>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="2">
+                                <path d="M9 18l6-6-6-6"/>
+                            </svg>
+                        </div>
+                    </div>
                     <!-- 收藏 -->
                     <div onclick="showFavoritesPage()" style="display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #EDEDED; cursor: pointer;">
                         <div style="width: 40px; height: 40px; background: #ffc107; border-radius: 6px; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
@@ -522,7 +900,7 @@
                         <path d="M9 1L1 9L9 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
-                <span class="header-title" id="chat-name">AI 聊天对象</span>
+                <span class="header-title" id="chat-name" onclick="statusToggleDrawer()" style="cursor:pointer;user-select:none;">AI 聊天对象</span>
                 <button onclick="openSettings()">
                     <svg width="20" height="4" viewBox="0 0 20 4" fill="currentColor">
                         <circle cx="2" cy="2" r="2"/>
@@ -531,6 +909,35 @@
                     </svg>
                 </button>
             </header>
+
+            <!-- 状态抽屉（粘在 header 下方，默认隐藏，点击标题展开） -->
+            <div id="status-drawer" style="background:#fff;border-bottom:1px solid #e8e8e8;overflow:hidden;flex-shrink:0;transition:max-height .3s ease;max-height:0;">
+                <div style="padding:10px 16px 12px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+                        <div onclick="statusEditField('location')" style="padding:6px 8px 6px 0;cursor:pointer;border-bottom:1px solid #f5f5f5;">
+                            <div style="font-size:10px;color:#aaa;margin-bottom:2px;">所在位置</div>
+                            <div id="sd-location" style="font-size:13px;color:#333;min-height:20px;line-height:20px;">—</div>
+                        </div>
+                        <div onclick="statusEditField('mood')" style="padding:6px 0 6px 8px;cursor:pointer;border-bottom:1px solid #f5f5f5;border-left:1px solid #f5f5f5;">
+                            <div style="font-size:10px;color:#aaa;margin-bottom:2px;">心情</div>
+                            <div id="sd-mood" style="font-size:13px;color:#333;min-height:20px;line-height:20px;">—</div>
+                        </div>
+                        <div onclick="statusEditField('affection')" style="padding:6px 8px 6px 0;cursor:pointer;border-bottom:1px solid #f5f5f5;">
+                            <div style="font-size:10px;color:#aaa;margin-bottom:2px;">好感度</div>
+                            <div id="sd-affection" style="font-size:13px;color:#333;min-height:20px;line-height:20px;">—</div>
+                        </div>
+                        <div onclick="statusEditField('outfit')" style="padding:6px 0 6px 8px;cursor:pointer;border-bottom:1px solid #f5f5f5;border-left:1px solid #f5f5f5;">
+                            <div style="font-size:10px;color:#aaa;margin-bottom:2px;">穿着</div>
+                            <div id="sd-outfit" style="font-size:13px;color:#333;min-height:20px;line-height:20px;">—</div>
+                        </div>
+                        <div onclick="statusEditField('activity')" style="grid-column:1/-1;padding:6px 0;cursor:pointer;">
+                            <div style="font-size:10px;color:#aaa;margin-bottom:2px;">当前在做</div>
+                            <div id="sd-activity" style="font-size:13px;color:#333;min-height:20px;line-height:20px;">—</div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px;color:#ccc;text-align:right;margin-top:4px;">点击可手动修改</div>
+                </div>
+            </div>
             
             <div class="content">
                 <div id="chat-container">
@@ -1533,12 +1940,12 @@
             }
         };
         
-        // ========== 批量发送相关 ==========
-        let pendingUserMessages = []; // 临时队列：存储本轮用户消息的气泡ID
-        let batchSendTimer = null; // 批量发送计时器
-        let isWaitingForAI = false; // 是否正在等待AI回复
-        let hasReachedWaitTime = false; // 是否已达到等待时间（7秒）
-        let apiTimeoutTimer = null; // API超时计时器
+        // ========== 发送状态 ==========
+        let pendingUserMessages = []; // 保留：钱包等外部模块还在用
+        let batchSendTimer = null;    // 保留：兼容外部调用
+        let isWaitingForAI = false;   // 轮询时跳过检查用（保留但不再由前端设置）
+        let hasReachedWaitTime = false;
+        let apiTimeoutTimer = null;
         // =====================================
         
         // 从localStorage加载并自动转换格式
@@ -1615,13 +2022,16 @@
         let saveDebounceTimer = null;
         // 追踪上次同步到服务器的消息数量，用于增量同步
         let _lastSyncedMsgCount = 0;
+        // ★ 用 ID Set 跟踪已同步到数据库的消息，比计数器更准确（重新生成截短后仍可正确识别新消息）
+        let _syncedIds = new Set();
 
         function saveChatHistory() {
             if (saveDebounceTimer) clearTimeout(saveDebounceTimer);
             
             saveDebounceTimer = setTimeout(async () => {
                 try {
-                    // 始终保存到 localStorage
+                    // 写入 localStorage（离线缓存）
+                    // 注意：消息本身由 /api/chat/send 负责存入数据库，这里不重复 append
                     const charKey = currentCharacterId;
                     if (charKey) {
                         localStorage.setItem(`char_${charKey}_chatHistory`, JSON.stringify(chatHistory));
@@ -1629,42 +2039,19 @@
                         localStorage.setItem(`char_${charKey}_longTermMemory`, JSON.stringify(longTermMemory));
                     }
 
-                    // 已登录时增量同步到服务器
+                    // 已登录时仅同步记忆/待总结数据（不同步消息）
                     if (isAuthenticated && charKey) {
                         try {
-                            const currentCount = chatHistory.length;
-                            
-                            if (currentCount > _lastSyncedMsgCount) {
-                                // 只发送新增的消息（增量）
-                                const newMessages = chatHistory.slice(_lastSyncedMsgCount);
-                                
-                                // 新增消息用单条INSERT，不清空旧数据
-                                for (const msg of newMessages) {
-                                    if (!msg || !msg.role || !msg.content) continue;
-                                    const msgId = msg.id || `auto_${charKey}_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
-                                    try {
-                                        await fetch(`/api/chat/history/${charKey}/append`, {
-                                            method: 'POST',
-                                            headers: { 'Content-Type': 'application/json' },
-                                            credentials: 'include',
-                                            body: JSON.stringify({ message: { ...msg, id: msgId } })
-                                        });
-                                    } catch(e) { /* 单条失败不影响其他 */ }
-                                }
-                                _lastSyncedMsgCount = currentCount;
-                            }
-
-                            // 记忆数据也同步
                             await window.LinglowAPI.Character.saveData(charKey, {
                                 longTermMemory: longTermMemory,
                                 pendingSummary: pendingSummaryBubbles,
                                 favorites: []
                             });
                         } catch (serverErr) {
-                            console.warn('⚠️ 服务器同步失败（本地已保存）:', serverErr.message);
+                            console.warn('⚠️ 记忆同步失败（本地已保存）:', serverErr.message);
                         }
                     }
-                    console.log('💾 已保存聊天记录');
+                    console.log('💾 已保存（localStorage + 记忆同步）');
                 } catch (e) {
                     console.error('❌ 保存失败:', e);
                 }
@@ -2498,9 +2885,22 @@
         }
         
         if (plusBtn) {
-            plusBtn.onclick = () => {
-                showToast('更多功能开发中...');
+            plusBtn.onclick = (e) => {
+                e.stopPropagation();
+                const panel = document.getElementById('plus-menu-panel');
+                if (panel) {
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                }
             };
+            // 点击其他地方关闭菜单
+            document.addEventListener('click', (e) => {
+                const panel = document.getElementById('plus-menu-panel');
+                if (panel && panel.style.display !== 'none') {
+                    if (!panel.contains(e.target) && e.target !== plusBtn && !plusBtn.contains(e.target)) {
+                        panel.style.display = 'none';
+                    }
+                }
+            });
         }
 
         // 播放轻量级音效
@@ -2577,6 +2977,9 @@
                     out.desktop = out.desktop.map(item => (item && item.id) ? fillDefaultsForItem(item) : null);
                     out.dock = out.dock.map(item => (item && item.id) ? fillDefaultsForItem(item) : null);
 
+                    // 钱包入口已移至「我」页面，强制清除桌面上的 wallet-app
+                    out.desktop = out.desktop.map(item => (item && item.id === 'wallet-app') ? null : item);
+
                     return out;
                 } catch (e) {
                     return getDefaultLayout();
@@ -2646,6 +3049,7 @@
 
         function getClickHandlerByType(id, type) {
             if (id.includes('wechat')) return 'openChat';
+            if (id.includes('wallet')) return 'openWalletPage';
             if (id.includes('preset')) return 'openPreset';
             if (id.includes('worldbook')) return 'openWorldBook';
             if (id.includes('api')) return 'openApiSettings';
@@ -3367,41 +3771,6 @@
             // 始终滚动到底部
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-       function loadHistoryUI() {
-            const chatContainer = document.getElementById('chat-container');
-            if (!chatContainer) return;
-
-            // 暴力重置
-            chatContainer.innerHTML = '';
-
-            if (chatHistory.length === 0) {
-                displayMessage("你好！有什么想跟我聊聊的吗？我很期待。", "ai");
-                requestAnimationFrame(() => {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                });
-                return;
-            }
-
-            // 完整渲染所有记录
-            chatHistory.forEach(item => {
-                const isAI = (item.role === 'assistant' || item.role === 'ai');
-                if (isAI) {
-                    const segments = item.content.split('\n');
-                    segments.forEach(seg => {
-                        if (seg.trim()) displayMessage(seg.trim(), 'ai');
-                    });
-                } else {
-                    displayMessage(item.content, 'user');
-                }
-            });
-            // 确保 DOM 完全渲染后再滚动
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                    console.log('滚动完成:', chatContainer.scrollTop, chatContainer.scrollHeight);
-                });
-            });
-        }
 
         function loadHistoryUI() {
             const chatContainer = document.getElementById('chat-container');
@@ -3452,11 +3821,21 @@
             
             console.log(`📜 懒加载：数据库共${displayTotal}条，内存${total}条，渲染最后${total - currentLoadedStart}条`);
             
+            // 先把聊天区域隐藏，避免用户看到从顶部跳到底部的闪烁
+            const chatPage = document.getElementById('chat-page');
+            const scrollContainer = chatPage ? chatPage.querySelector('.content') : null;
+            if (scrollContainer) scrollContainer.style.visibility = 'hidden';
+            
             // 渲染这个范围的消息
             renderMessagesRange(currentLoadedStart, total, false);
             
-            // 滚动到底部
-            scrollToBottom();
+            // 渲染完成后：先滚到底，再显示——用户看到的直接是底部
+            requestAnimationFrame(() => {
+                if (scrollContainer) {
+                    scrollContainer.scrollTop = scrollContainer.scrollHeight;
+                    scrollContainer.style.visibility = '';
+                }
+            });
             
             // 设置滚动监听（如果还没设置）
             setupScrollListener();
@@ -3474,6 +3853,12 @@
             
             for (let i = start; i < end; i++) {
                 const bubble = chatHistory[i];
+                
+                // isSystem 气泡（如[已收款]确认消息）只给AI看，不显示在界面上
+                // isSystem 可能直接在属性上，也可能存在 metadata 里（从数据库读回的场景）
+                const isSystem = bubble.isSystem || (bubble.metadata && bubble.metadata.isSystem);
+                if (isSystem) continue;
+                
                 const status = bubble.role === 'user' ? 2 : 0;
                 
                 // 创建消息元素但不添加到DOM（避免多次重排）
@@ -3739,6 +4124,7 @@
          * 切换页面
          */
         function showPage(pageId, navElement) {
+            console.trace('showPage called:', pageId);
             document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
 
@@ -3755,20 +4141,23 @@
                 // 1. 获取 UI 上的最后一个 ID
                 const lastUiId = lastUiMessage ? lastUiMessage.dataset.bubbleId : null;
 
-                // 2. 获取数据里的最后一个 ID
-                const lastDataId = chatHistory.length > 0 ? chatHistory[chatHistory.length - 1].id : null;
+                // 2. 获取数据里最后一个【可见】气泡的 ID（跳过 isSystem）
+                let lastDataId = null;
+                for (let i = chatHistory.length - 1; i >= 0; i--) {
+                    const b = chatHistory[i];
+                    const isSystem = b.isSystem || (b.metadata && b.metadata.isSystem);
+                    if (!isSystem) { lastDataId = b.id; break; }
+                }
 
                 // 3. 简单粗暴的对比
                 // 如果 ID 不一样，或者（数据有东西但界面没东西），则重绘
                 if (lastUiId !== lastDataId || (chatHistory.length > 0 && !lastUiMessage)) {
-                    console.log("检测到 ID 不一致，执行重置渲染");
-                    loadHistoryUI();
+                    console.log("检测到 ID 不一致，执行重置渲染", { lastUiId, lastDataId });
+                    loadHistoryUI(); // 内部已处理 scroll
                 } else {
-                    console.log("内容匹配，保持当前界面状态");
+                    // 内容匹配，不重绘，只滚到底
+                    scrollToBottom();
                 }
-                
-                // 滚动到底部逻辑
-                scrollToBottom();
             }
         }
         /**
@@ -4786,6 +5175,23 @@
             pendingSummaryBubbles = pendingSummaryBubbles.filter(b => 
                 !bubblestoDelete.find(deleted => deleted.id === b.id)
             );
+
+            // ★ 同步删除数据库里被截掉的消息
+            if (isAuthenticated && currentCharacterId && bubblestoDelete.length > 0) {
+                bubblestoDelete.forEach(b => {
+                    if (b.id) {
+                        _syncedIds.delete(b.id); // 从已同步集合里移除
+                        fetch(`/api/chat/message/${b.id}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        }).catch(e => console.warn('删除消息失败:', b.id, e.message));
+                    }
+                });
+            }
+
+            // ★ 重置增量同步计数器，确保新生成的回复能正确上传
+            _lastSyncedMsgCount = chatHistory.length;
+
             saveChatHistory();
             
             console.log('🔄 重新生成，删除了', bubblestoDelete.length, '个气泡 (从索引', startIndex, '开始)');
@@ -4879,6 +5285,29 @@
                 const apiMessages = convertToAPIFormat(recentBubbles);
                 
                 let finalSystemPrompt = config.systemPrompt;
+            
+            // 注入状态栏
+            if (typeof statusBuildPromptInjection !== 'undefined') {
+                finalSystemPrompt += statusBuildPromptInjection();
+            }
+            
+            // 注入钱包
+            if (typeof walletBalance !== 'undefined') {
+                const bal = walletBalance();
+                // 统计最近10条消息中的转账次数，防止AI刷屏转账
+                const recentTransferCount = (typeof apiMessages !== 'undefined' ? apiMessages : []).slice(-10).filter(m =>
+                    m.content && (m.content.includes('[转账给你]') || m.content.includes('[转账:'))
+                ).length;
+                const transferWarning = recentTransferCount >= 2
+                    ? `\n⚠️ 注意：你最近已多次发起转账，请克制，本次回复中【不要】再使用 [转账:N] 标记。`
+                    : '';
+                finalSystemPrompt += `\n\n[钱包系统] 用户当前余额：¥${bal.toFixed(2)}。
+可用标记（在回复任意位置插入，系统自动处理，无需说明标记存在）：
+- [转账:金额] — 你主动转钱给用户（如还钱、奖励）。仅在剧情有充分理由时使用，不要频繁。
+- [收款:金额] — 你收下用户发来的转账（会显示收款成功气泡）。
+- [退回:金额] — 你退回用户发来的转账（会显示退回气泡，钱还给用户）。
+金额须为正整数或两位小数。重要：不要每条消息都转账，只在场景自然需要时使用。${transferWarning}`;
+            }
                 
                 // 添加长期记忆到系统提示
                 if (longTermMemory && longTermMemory.metadata) {
@@ -4904,7 +5333,16 @@
                     }
                     
                     // 添加所有记忆（按last_mentioned倒序）
-                    if (longTermMemory.important_events && longTermMemory.important_events.length > 0) {
+                    let eventsToInject = longTermMemory.important_events || [];
+                if (localStorage.getItem('memoryOptimizeEnabled') === '1' && typeof filterMemoriesBySmallModel !== 'undefined' && eventsToInject.length > 0) {
+                    try {
+                        const recentUserContent = apiMessages.filter(m => m.role === 'user').slice(-3).map(m => m.content).join('\n');
+                        eventsToInject = await filterMemoriesBySmallModel(recentUserContent, eventsToInject);
+                        console.log('🧠 记忆优化：筛选后剩', eventsToInject.length, '条');
+                    } catch(e) { console.warn('记忆优化失败:', e); }
+                }
+                
+                if (eventsToInject && eventsToInject.length > 0) {
                         // 按last_mentioned倒序排序（最近的在前）
                         const sortedMemories = [...longTermMemory.important_events].sort((a, b) => 
                             new Date(b.last_mentioned) - new Date(a.last_mentioned)
@@ -6783,9 +7221,48 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             const bubbleDiv = document.createElement('div');
             bubbleDiv.classList.add('bubble');
             
-            // 添加主要文本(不包含引用)
-            const mainTextNode = document.createTextNode(mainText);
-            bubbleDiv.appendChild(mainTextNode);
+            // 检测转账气泡
+            const transferOutMatch = mainText.match(/^\[转账给(?!你)(.+?)\] ¥([\d.]+)(?:\s·\s(.+))?$/);
+            const transferInMatch = mainText.match(/^\[转账给你\] ¥([\d.]+)$/);
+            const collectMatch = mainText.match(/^\[收款请求\] ¥([\d.]+)(?:\s·\s(.+))?$/);
+            const refundMatch = mainText.match(/^\[退回\] ¥([\d.]+) 来自(.+)$/);
+            const collectSuccessMatch = mainText.match(/^\[收款成功\] ¥([\d.]+)$/);
+            
+            if (transferOutMatch || transferInMatch || collectMatch || refundMatch || collectSuccessMatch) {
+                bubbleDiv.style.cssText = 'background:transparent;padding:0;box-shadow:none;border-radius:0;cursor:pointer;';
+                if (transferOutMatch) {
+                    const [, toName, amount, note] = transferOutMatch;
+                    if (typeof renderTransferBubble !== 'undefined') {
+                        bubbleDiv.innerHTML = renderTransferBubble('out', amount, toName, note || '');
+                        bubbleDiv.onclick = () => openTransferDetail('out', amount, note||'', toName, bubbleId, fullTimestamp);
+                    }
+                } else if (transferInMatch) {
+                    const [, amount] = transferInMatch;
+                    if (typeof renderTransferBubble !== 'undefined') {
+                        bubbleDiv.innerHTML = renderTransferBubble('in', amount, config.aiNickname || '对方', '');
+                        bubbleDiv.onclick = () => openTransferDetail('in', amount, '', config.aiNickname||'对方', bubbleId, fullTimestamp);
+                    }
+                } else if (collectMatch) {
+                    const [, amount, note] = collectMatch;
+                    if (typeof renderCollectBubble !== 'undefined') {
+                        bubbleDiv.innerHTML = renderCollectBubble(amount, note || '');
+                    }
+                } else if (refundMatch) {
+                    const [, amount, fromName] = refundMatch;
+                    if (typeof renderRefundBubble !== 'undefined') {
+                        bubbleDiv.innerHTML = renderRefundBubble(amount, fromName);
+                    }
+                } else if (collectSuccessMatch) {
+                    const [, amount] = collectSuccessMatch;
+                    if (typeof renderCollectSuccessBubble !== 'undefined') {
+                        bubbleDiv.innerHTML = renderCollectSuccessBubble(amount);
+                    }
+                }
+            } else {
+                // 添加主要文本(不包含引用)
+                const mainTextNode = document.createTextNode(mainText);
+                bubbleDiv.appendChild(mainTextNode);
+            }
             
             const metaDiv = document.createElement('div');
             metaDiv.classList.add('message-meta');
@@ -6799,8 +7276,9 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             timeSpan.textContent = timeStr;
             metaDiv.appendChild(timeSpan);
             
-            // 用户消息显示对勾
-            if (role === 'user') {
+            // 用户消息显示对勾（钱包类气泡不显示）
+            const isWalletBubble = !!(transferOutMatch || transferInMatch || collectMatch || refundMatch || collectSuccessMatch);
+            if (role === 'user' && !isWalletBubble) {
                 const checkmark = document.createElement('span');
                 checkmark.classList.add('checkmark');
                 if (status === 2) {
@@ -6846,9 +7324,13 @@ ${JSON.stringify(importedMemoryData, null, 2)}
                 addMultiSelectCheckbox(messageDiv, bubble.id);
             }
             
-            // 除非skipScroll=true，否则每条消息都滚动（这样AI消息跳出来时能看到）
-            if (!skipScroll && !targetContainer) { // 如果是临时容器，不滚动
-                scrollToBottom();
+            // 只有用户已经在底部（或skipScroll=false且是自己发的消息）才滚动
+            // 防止用户看历史记录时被新消息强制拉到底
+            if (!skipScroll && !targetContainer) {
+                const chatPage = document.getElementById('chat-page');
+                const sc = chatPage ? chatPage.querySelector('.content') : null;
+                const isNearBottom = sc ? (sc.scrollHeight - sc.scrollTop - sc.clientHeight < 120) : true;
+                if (isNearBottom) scrollToBottom();
             }
             
             return bubble;
@@ -6861,18 +7343,27 @@ ${JSON.stringify(importedMemoryData, null, 2)}
         function updateLastMessageStatus(status) {
             const userMessages = chatContainer.querySelectorAll('.message.user');
             if (userMessages.length === 0) return;
-            
-            const lastMessage = userMessages[userMessages.length - 1];
-            const checkmark = lastMessage.querySelector('.checkmark');
-            
-            if (checkmark) {
-                if (status === 2) {
-                    checkmark.classList.add('double');
-                    checkmark.textContent = '✓✓';
-                } else if (status === 1) {
+
+            if (status === 2) {
+                // 双勾：所有还没双勾的用户气泡全部升级（一批多条都改）
+                userMessages.forEach(msg => {
+                    if (msg.dataset.status !== '2') {
+                        const checkmark = msg.querySelector('.checkmark');
+                        if (checkmark) {
+                            checkmark.classList.add('double');
+                            checkmark.textContent = '✓✓';
+                        }
+                        msg.dataset.status = '2';
+                    }
+                });
+            } else if (status === 1) {
+                // 单勾：只改最后一条（刚发出去的那条）
+                const lastMessage = userMessages[userMessages.length - 1];
+                const checkmark = lastMessage.querySelector('.checkmark');
+                if (checkmark && lastMessage.dataset.status !== '2') {
                     checkmark.textContent = '✓';
                 }
-                lastMessage.dataset.status = status;
+                lastMessage.dataset.status = '1';
             }
         }
         
@@ -6933,16 +7424,20 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             // 构建 bubbles 列表：优先用后端传来的segments，降级自己切分
             let bubbles = [];
             if (segments && segments.length > 0) {
-                // 后端已切分好，直接用
-                bubbles = segments.map(seg => ({
-                    id: seg.id,
-                    content: cleanApiResponse(seg.content).trim(),
-                    timestamp: seg.timestamp || aiTimestamp
-                })).filter(b => b.content.length > 0);
+                // 后端已切分好，先逐段剥离状态块再用
+                bubbles = segments.map(seg => {
+                    const cleanedContent = typeof statusParseAndStrip !== 'undefined'
+                        ? statusParseAndStrip(cleanApiResponse(seg.content).trim())
+                        : cleanApiResponse(seg.content).trim();
+                    return { id: seg.id, content: cleanedContent, timestamp: seg.timestamp || aiTimestamp };
+                }).filter(b => b.content.length > 0);
             } else if (fullAiText) {
-                // 降级：自己按\n切分
+                // 降级：先剥离状态块，再按\n切分
+                const strippedText = typeof statusParseAndStrip !== 'undefined'
+                    ? statusParseAndStrip(fullAiText)
+                    : fullAiText;
                 const baseId = backendMessageId || ('bubble_' + Date.now());
-                fullAiText.split('\n').forEach((seg, i) => {
+                strippedText.split('\n').forEach((seg, i) => {
                     const clean = cleanApiResponse(seg).trim();
                     if (clean.length > 0) {
                         bubbles.push({
@@ -6953,6 +7448,66 @@ ${JSON.stringify(importedMemoryData, null, 2)}
                     }
                 });
             }
+
+            // 加入chatHistory之前，先解析并剥离钱包特殊标签
+            // [转账:N] → AI主动转钱给用户；[收款:N] → AI收款；[退回:N] → AI退还转账
+            bubbles = bubbles.map(b => {
+                let text = b.content;
+
+                // [转账:N] → receiveMoneyFromChar 触发收款气泡
+                const transferMatches = [...text.matchAll(/\[转账[:：](\d+(?:\.\d{1,2})?)\]/g)];
+                if (transferMatches.length > 0) {
+                    let total = 0;
+                    transferMatches.forEach(m => { total += parseFloat(m[1]); });
+                    text = text.replace(/\[转账[:：]\d+(?:\.\d{1,2})?\]/g, '').trim();
+                    if (typeof receiveMoneyFromChar !== 'undefined') {
+                        setTimeout(() => receiveMoneyFromChar(total, config.aiNickname || '对方'), 600);
+                    }
+                }
+
+                // [收款:N] → 显示收款成功气泡（AI收下用户的转账）
+                const acceptMatches = [...text.matchAll(/\[收款[:：](\d+(?:\.\d{1,2})?)\]/g)];
+                if (acceptMatches.length > 0) {
+                    text = text.replace(/\[收款[:：]\d+(?:\.\d{1,2})?\]/g, '').trim();
+                    acceptMatches.forEach(m => {
+                        const amount = parseFloat(m[1]);
+                        const acceptText = `[收款成功] ¥${amount.toFixed(2)}`;
+                        const bid = 'bubble_' + Date.now() + '_aiaccept_' + Math.random().toString(36).slice(2, 6);
+                        chatHistory.push({ id: bid, role: 'assistant', content: acceptText, timestamp: new Date().toISOString() });
+                        saveChatHistory();
+                        setTimeout(() => {
+                            displayMessage(acceptText, 'assistant', 0, new Date().toISOString(), false, bid, false);
+                            const c = document.querySelector('#chat-page .content');
+                            if (c) c.scrollTop = c.scrollHeight;
+                        }, 400);
+                    });
+                }
+
+                // [退回:N] → 退钱给用户，显示退回气泡
+                const refundTagMatches = [...text.matchAll(/\[退回[:：](\d+(?:\.\d{1,2})?)\]/g)];
+                if (refundTagMatches.length > 0) {
+                    text = text.replace(/\[退回[:：]\d+(?:\.\d{1,2})?\]/g, '').trim();
+                    refundTagMatches.forEach(m => {
+                        const amount = parseFloat(m[1]);
+                        if (typeof walletSetBalance !== 'undefined') {
+                            walletSetBalance(walletBalance() + amount);
+                            walletAddTx('in', amount, config.aiNickname || '对方', '退回转账');
+                        }
+                        const fromName = config.aiNickname || '对方';
+                        const refundText = `[退回] ¥${amount.toFixed(2)} 来自${fromName}`;
+                        const bid = 'bubble_' + Date.now() + '_airefund';
+                        chatHistory.push({ id: bid, role: 'assistant', content: refundText, timestamp: new Date().toISOString() });
+                        saveChatHistory();
+                        setTimeout(() => {
+                            displayMessage(refundText, 'assistant', 0, new Date().toISOString(), false, bid, false);
+                            const c = document.querySelector('#chat-page .content');
+                            if (c) c.scrollTop = c.scrollHeight;
+                        }, 400);
+                    });
+                }
+
+                return { ...b, content: text };
+            }).filter(b => b.content.length > 0);
 
             // 加入chatHistory
             bubbles.forEach(b => {
@@ -7035,754 +7590,10 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             displayMessage(text, role, 0, fullTimestamp, false, targetId, false);
         }
         
-        // ========== 批量发送功能 ==========
-        /**
-         * 开始批量发送计时器
-         */
-        function startBatchTimer() {
-            // 清除之前的计时器
-            if (batchSendTimer) {
-                clearTimeout(batchSendTimer);
-            }
-            
-            // 重置"已到时间"标记
-            hasReachedWaitTime = false;
-            
-            // 获取等待时间（秒）
-            const waitTime = parseInt(localStorage.getItem('batchWaitTime')) || 7;
-            
-            console.log('⏰ 启动计时器，等待', waitTime, '秒...');
-            
-            // 启动新计时器
-            batchSendTimer = setTimeout(() => {
-                console.log('⏰ 计时器到期');
-                sendBatchMessages();
-            }, waitTime * 1000);
-        }
-        
-        /**
-         * 取消批量发送计时器
-         */
-        function cancelBatchTimer() {
-            if (batchSendTimer) {
-                clearTimeout(batchSendTimer);
-                batchSendTimer = null;
-                console.log('⏰ 计时器已取消');
-            }
-        }
-        
-        /**
-         * 发送批量消息（计时器到期时调用）
-         */
-        async function sendBatchMessages() {
-            // 标记已到达等待时间
-            hasReachedWaitTime = true;
-            
-            if (pendingUserMessages.length === 0) {
-                console.log('📭 没有待发送的消息');
-                hasReachedWaitTime = false;
-                return;
-            }
-            
-            // 检查是否正在等待AI回复
-            if (isWaitingForAI) {
-                console.log('⏳ 已到7秒但正在等待AI回复，保持hasReachedWaitTime=true');
-                // 不重启计时器，保持hasReachedWaitTime=true
-                // 等AI回复完成后会检查这个标记
-                return;
-            }
-            
-            // 两个条件都满足：已到时间 AND 不在等待AI
-            console.log('📤 发送批量消息，共', pendingUserMessages.length, '条');
-            
-            // 重置标记
-            hasReachedWaitTime = false;
-            
-            // 标记正在等待AI
-            isWaitingForAI = true;
-            
-            // 将所有待发送消息的状态更新为双勾
-            pendingUserMessages.forEach(bubbleId => {
-                const messageDiv = chatContainer.querySelector(`[data-bubble-id="${bubbleId}"]`);
-                if (messageDiv) {
-                    const checkmark = messageDiv.querySelector('.checkmark');
-                    if (checkmark) {
-                        checkmark.classList.add('double');
-                        checkmark.textContent = '✓✓';
-                    }
-                    messageDiv.dataset.status = '2';
-                }
-            });
-            
-            // 显示"对方正在输入中..."
-            showTypingIndicator();
-            
-            // 【关键修复】保存待发送队列的副本，用于API调用时识别等待期间的消息
-            const currentBatchIds = [...pendingUserMessages];
-            
-            // 清空待发送队列
-            pendingUserMessages = [];
-            
-            // 调用API，传入当前批次的消息ID
-            await callAPIToGenerate(currentBatchIds);
-        }
-        
-        /**
-         * 智能提取相关记忆
-         * @param {Array} memories - 所有记忆
-         * @param {string} userMessage - 用户消息
-         * @param {Array} recentBubbles - 最近的对话气泡
-         * @returns {Array} 相关记忆列表（1-5条）
-         */
-        function extractRelevantMemories(memories, userMessage, recentBubbles) {
-            if (!memories || memories.length === 0) return [];
-            
-            console.log('🧠 开始智能记忆提取');
-            console.log('📊 总记忆数:', memories.length);
-            console.log('💬 用户消息:', userMessage.substring(0, 50));
-            
-            const result = [];
-            const now = Date.now();
-            
-            // 检测用户情绪（是否在抱怨记忆不准确）
-            const isComplaining = /我都说了|你记不得|忘了吗|不记得|刚才说过/.test(userMessage);
-            const hasEmphasis = /！|!/.test(userMessage);
-            const isEmotional = isComplaining || hasEmphasis;
-            
-            if (isEmotional) {
-                console.log('😤 检测到情绪强度，扩大搜索范围');
-            }
-            
-            // 解析用户提到的时间
-            const timeRange = parseTimeReference(userMessage, now);
-            if (timeRange) {
-                console.log('📅 检测到时间引用:', timeRange.description);
-            }
-            
-            // ===== 第一层：时间筛选 =====
-            let candidates = [];
-            
-            if (timeRange && !isEmotional) {
-                // 用户明确提到时间，筛选该时间段的记忆
-                candidates = memories.filter(m => {
-                    const created = new Date(m.created_at).getTime();
-                    const lastMentioned = new Date(m.last_mentioned).getTime();
-                    // 创建时间或最后提及时间在范围内
-                    return (created >= timeRange.start && created <= timeRange.end) ||
-                           (lastMentioned >= timeRange.start && lastMentioned <= timeRange.end);
-                });
-                console.log(`📅 时间段筛选: ${candidates.length}条记忆`);
-            } else if (isEmotional && timeRange) {
-                // 情绪强，扩大时间范围（前后各延长50%）
-                const duration = timeRange.end - timeRange.start;
-                const expandedStart = timeRange.start - duration * 0.5;
-                const expandedEnd = timeRange.end + duration * 0.5;
-                
-                candidates = memories.filter(m => {
-                    const created = new Date(m.created_at).getTime();
-                    const lastMentioned = new Date(m.last_mentioned).getTime();
-                    return (created >= expandedStart && created <= expandedEnd) ||
-                           (lastMentioned >= expandedStart && lastMentioned <= expandedEnd);
-                });
-                console.log(`😤 情绪模式：扩大时间范围，筛选到 ${candidates.length}条`);
-            } else {
-                // 没有时间引用，按最近时间筛选
-                const threeDaysAgo = now - 3 * 24 * 60 * 60 * 1000;
-                const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-                
-                // 最近3天必选
-                const veryRecent = memories.filter(m => 
-                    new Date(m.last_mentioned).getTime() >= threeDaysAgo
-                );
-                candidates.push(...veryRecent);
-                console.log(`⏰ 最近3天: ${veryRecent.length}条`);
-                
-                // 如果不够5条，加入3-7天的
-                if (candidates.length < 5) {
-                    const recent = memories.filter(m => {
-                        const time = new Date(m.last_mentioned).getTime();
-                        return time >= sevenDaysAgo && time < threeDaysAgo;
-                    });
-                    candidates.push(...recent);
-                    console.log(`⏰ 3-7天: ${recent.length}条`);
-                }
-            }
-            
-            // ===== 第二层：内容匹配 =====
-            // 提取关键词
-            const keywords = extractKeywords(userMessage, recentBubbles);
-            console.log(`🔍 提取关键词: ${keywords.join(', ')}`);
-            
-            if (keywords.length > 0) {
-                // 对候选记忆进行内容匹配评分
-                const scored = candidates.map(m => {
-                    let matchScore = 0;
-                    const titleLower = m.title.toLowerCase();
-                    const contentLower = m.content.toLowerCase();
-                    
-                    keywords.forEach(kw => {
-                        const kwLower = kw.toLowerCase();
-                        // title匹配 → 必选
-                        if (titleLower.includes(kwLower)) {
-                            matchScore += 100;  // 极高分，保证被选中
-                        }
-                        // content匹配
-                        if (contentLower.includes(kwLower)) {
-                            matchScore += 1;
-                        }
-                    });
-                    
-                    return { memory: m, matchScore };
-                });
-                
-                // 分离：title命中的（必选）和 content命中的
-                const titleMatched = scored.filter(x => x.matchScore >= 100);
-                const contentMatched = scored.filter(x => x.matchScore > 0 && x.matchScore < 100);
-                
-                console.log(`✅ Title匹配（必选）: ${titleMatched.length}条`);
-                console.log(`📝 Content匹配: ${contentMatched.length}条`);
-                
-                // 先加入title匹配的
-                result.push(...titleMatched.map(x => x.memory));
-                
-                // 再加入content匹配度高的（按分数排序）
-                contentMatched.sort((a, b) => b.matchScore - a.matchScore);
-                
-                // 补充到3-5条（但不超过5条）
-                const remaining = Math.min(5 - result.length, contentMatched.length);
-                if (remaining > 0) {
-                    result.push(...contentMatched.slice(0, remaining).map(x => x.memory));
-                }
-                
-                // 如果在非时间筛选模式下，还要搜索所有记忆的content
-                if (!timeRange && result.length < 3) {
-                    console.log('🔍 候选不足，搜索全部记忆...');
-                    const allMemoriesMatched = memories
-                        .filter(m => !result.find(r => r.memory_id === m.memory_id))  // 排除已选
-                        .map(m => {
-                            let score = 0;
-                            const titleLower = m.title.toLowerCase();
-                            const contentLower = m.content.toLowerCase();
-                            
-                            keywords.forEach(kw => {
-                                const kwLower = kw.toLowerCase();
-                                if (titleLower.includes(kwLower)) score += 100;
-                                if (contentLower.includes(kwLower)) score += 1;
-                            });
-                            
-                            return { memory: m, score };
-                        })
-                        .filter(x => x.score > 0)
-                        .sort((a, b) => b.score - a.score);
-                    
-                    const toAdd = Math.min(3 - result.length, allMemoriesMatched.length);
-                    if (toAdd > 0) {
-                        result.push(...allMemoriesMatched.slice(0, toAdd).map(x => x.memory));
-                        console.log(`📚 全库搜索：+${toAdd}条`);
-                    }
-                }
-            }
-            
-            // ===== 第三层：鲁棒性兜底 =====
-            // 修复3: 如果完全没有匹配到，返回所有记忆（按时间排序）
-            if (result.length === 0) {
-                console.log('⚠️ 关键词无匹配，返回全部记忆（按时间排序）');
-                const allByTime = [...memories].sort((a, b) => 
-                    new Date(b.last_mentioned) - new Date(a.last_mentioned)
-                );
-                result.push(...allByTime);
-            }
-            
-            // 去重并按时间排序
-            const unique = [...new Map(result.map(m => [m.memory_id, m])).values()];
-            unique.sort((a, b) => new Date(b.last_mentioned) - new Date(a.last_mentioned));
-            
-            // 如果是兜底情况（返回了全部记忆），不限制数量；否则最多5条
-            const maxReturn = result.length === memories.length ? memories.length : 5;
-            const final = unique.slice(0, maxReturn);
-            
-            console.log(`✅ 最终返回 ${final.length} 条记忆:`);
-            final.forEach((m, i) => {
-                console.log(`   ${i + 1}. ${m.title}`);
-            });
-            
-            return final;
-        }
-        
-        /**
-         * 解析时间引用
-         */
-        function parseTimeReference(text, now) {
-            const today = new Date(now);
-            today.setHours(0, 0, 0, 0);
-            
-            // 昨天
-            if (/昨天|昨日/.test(text)) {
-                const start = new Date(today);
-                start.setDate(start.getDate() - 1);
-                const end = new Date(start);
-                end.setHours(23, 59, 59, 999);
-                return { start: start.getTime(), end: end.getTime(), description: '昨天' };
-            }
-            
-            // 前天
-            if (/前天/.test(text)) {
-                const start = new Date(today);
-                start.setDate(start.getDate() - 2);
-                const end = new Date(start);
-                end.setHours(23, 59, 59, 999);
-                return { start: start.getTime(), end: end.getTime(), description: '前天' };
-            }
-            
-            // 上周/上星期
-            if (/上周|上星期|上礼拜/.test(text)) {
-                const start = new Date(today);
-                start.setDate(start.getDate() - 14);  // 2周前
-                const end = new Date(today);
-                end.setDate(end.getDate() - 7);  // 1周前
-                return { start: start.getTime(), end: end.getTime(), description: '上周' };
-            }
-            
-            // 上个月
-            if (/上个月|上月/.test(text)) {
-                const start = new Date(today);
-                start.setMonth(start.getMonth() - 1);
-                start.setDate(1);
-                const end = new Date(start);
-                end.setMonth(end.getMonth() + 1);
-                end.setDate(0);
-                end.setHours(23, 59, 59, 999);
-                return { start: start.getTime(), end: end.getTime(), description: '上个月' };
-            }
-            
-            // 今年X月
-            const monthMatch = text.match(/今年\s*([0-9一二三四五六七八九十]+)\s*月/);
-            if (monthMatch) {
-                const monthNum = parseChineseNumber(monthMatch[1]);
-                if (monthNum >= 1 && monthNum <= 12) {
-                    const start = new Date(today.getFullYear(), monthNum - 1, 1);
-                    const end = new Date(today.getFullYear(), monthNum, 0, 23, 59, 59, 999);
-                    return { start: start.getTime(), end: end.getTime(), description: `今年${monthNum}月` };
-                }
-            }
-            
-            // 具体日期 XX/XX 或 XX月XX日
-            const dateMatch = text.match(/(\d{1,2})[\/月](\d{1,2})/);
-            if (dateMatch) {
-                const month = parseInt(dateMatch[1]);
-                const day = parseInt(dateMatch[2]);
-                if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
-                    const year = today.getFullYear();
-                    const start = new Date(year, month - 1, day, 0, 0, 0, 0);
-                    const end = new Date(year, month - 1, day, 23, 59, 59, 999);
-                    return { start: start.getTime(), end: end.getTime(), description: `${month}月${day}日` };
-                }
-            }
-            
-            return null;
-        }
-        
-        /**
-         * 解析中文数字
-         */
-        function parseChineseNumber(str) {
-            const map = {
-                '一': 1, '二': 2, '三': 3, '四': 4, '五': 5,
-                '六': 6, '七': 7, '八': 8, '九': 9, '十': 10,
-                '十一': 11, '十二': 12
-            };
-            return map[str] || parseInt(str) || 0;
-        }
-        
-        /**
-         * 提取关键词（综合版 - 多策略融合）
-         */
-        function extractKeywords(userMessage, recentBubbles) {
-            // 修复1: 使用最近5条用户消息（而不是3条）
-            const recentUserMsgs = recentBubbles
-                .filter(b => b.role === 'user')
-                .slice(-5)  // 改为5条
-                .map(b => b.content)
-                .join(' ');
-            
-            const text = userMessage + ' ' + recentUserMsgs;
-            const keywords = [];
-            
-            console.log('📝 提取关键词的文本长度:', text.length, '字');
-            
-            // === 策略1：名词后缀模式 ===
-            const nounPattern = /([\u4e00-\u9fa5]{1,3}[子儿者人师生员长家手物品料纸书笔机器虫]+)/g;
-            const nouns = text.match(nounPattern) || [];
-            keywords.push(...nouns);
-            
-            // === 策略2：专有名词（英文） ===
-            const properNouns = text.match(/[A-Z][a-zA-Z]+/g) || [];
-            keywords.push(...properNouns);
-            
-            // === 策略3：简单分词（按标点和空格） ===
-            const segments = text.split(/[\s，。！？、；：""''（）【】《》]+/);
-            segments.forEach(seg => {
-                if (seg.length >= 2 && seg.length <= 6) {
-                    // 排除纯时间词和虚词
-                    if (/^(今天|明天|昨天|今晚|现在|刚才|之后|以前|上次|下次|最近|一直|没有|可以|应该|这个|那个|什么|怎么)$/.test(seg)) {
-                        return;
-                    }
-                    keywords.push(seg);
-                }
-            });
-            
-            // === 策略4：高价值单字（名词性） ===
-            const valuableChars = text.match(/[信纸书笔机器车房钱金银铜铁钢木水火土山石玉宝珠贝币票卡证照片画图章印台灯椅桌柜架箱包袋盒瓶罐壶杯碗盘碟勺筷]/g) || [];
-            keywords.push(...valuableChars);
-            
-            // === 策略5：连续2-3字的中文词（补充） ===
-            const chineseWords = text.match(/[\u4e00-\u9fa5]{2,3}/g) || [];
-            chineseWords.forEach(w => {
-                // 只保留不在停用词列表的
-                if (!/^(我们|你们|他们|今天|明天|昨天|今晚|现在|刚才|之后|以前|上次|下次|最近|一直|没有|可以|应该|这个|那个|什么|怎么|为什么|不是|觉得|知道|继续|之前)$/.test(w)) {
-                    keywords.push(w);
-                }
-            });
-            
-            // 去重并统计频率
-            const freq = {};
-            keywords.forEach(k => {
-                const clean = k.trim();
-                if (clean.length > 0 && clean.length <= 6) {
-                    freq[clean] = (freq[clean] || 0) + 1;
-                }
-            });
-            
-            // 修复2: 去除重叠词（只保留最长的）
-            const allWords = Object.keys(freq);
-            const filtered = allWords.filter(word => {
-                // 检查是否被其他更长的词包含
-                return !allWords.some(other => 
-                    other !== word && 
-                    other.length > word.length && 
-                    other.includes(word)
-                );
-            });
-            
-            console.log(`🔍 去重叠前: ${allWords.length}个词`);
-            console.log(`✂️ 去重叠后: ${filtered.length}个词`);
-            
-            // 重新排序：先按频率，再按长度
-            const sorted = filtered.sort((a, b) => {
-                if (freq[b] !== freq[a]) return freq[b] - freq[a];
-                return b.length - a.length;
-            });
-            
-            const result = sorted.slice(0, 8);
-            console.log('🎯 最终关键词:', result.join(', '));
-            
-            return result;
-        }
-        
-        /**
-         * 调用API生成回复（从generateBtn.onclick中提取）
-         * @param {Array} currentBatchIds - 当前批次的消息ID数组，用于识别等待期间发送的消息
-         */
-        async function callAPIToGenerate(currentBatchIds = []) {
-            // 启动API超时计时器
-            const timeoutSeconds = parseInt(localStorage.getItem('apiTimeout')) || 60;
-            console.log('⏰ 启动API超时计时器:', timeoutSeconds, '秒');
-            
-            apiTimeoutTimer = setTimeout(() => {
-                console.error('⏰ API请求超时（', timeoutSeconds, '秒）');
-                
-                // 重置状态
-                isWaitingForAI = false;
-                hasReachedWaitTime = false;
-                hideTypingIndicator();
-                
-                // 显示超时消息
-                const errorBubble = document.createElement('div');
-                errorBubble.classList.add('message', 'ai');
-                const bubble = document.createElement('div');
-                bubble.classList.add('bubble');
-                bubble.style.color = '#d32f2f';
-                bubble.textContent = `⏰ API 请求超时（${timeoutSeconds}秒未响应）。请检查网络连接或稍后重试。`;
-                errorBubble.appendChild(bubble);
-                chatContainer.appendChild(errorBubble);
-                scrollToBottom();
-                
-                // 检查队列，如果有消息可能需要重试
-                if (pendingUserMessages.length > 0) {
-                    if (hasReachedWaitTime) {
-                        console.log('📬 超时后发现待发送消息，准备重试');
-                        setTimeout(() => sendBatchMessages(), 100);
-                    } else {
-                        console.log('📬 超时后发现待发送消息，重启计时器');
-                        startBatchTimer();
-                    }
-                }
-            }, timeoutSeconds * 1000);
-
-            // B. 获取用户设置的上下文窗口大小 (N)
-            const contextSizeKey = 'contextWindowSize'; 
-            const N = parseInt(localStorage.getItem(contextSizeKey)) || 50; 
-            
-            // C. 截取最后N个气泡
-            let recentBubbles = chatHistory.slice(-N);
-            
-            // 【关键优化】向前回溯，确保第一条消息是完整的
-            recentBubbles = extendBackward(recentBubbles, chatHistory);
-            
-            console.log('📊 准备发送的气泡数量:', recentBubbles.length);
-            console.log('📊 当前批次ID:', currentBatchIds);
-            console.log('📊 完整chatHistory长度:', chatHistory.length);
-            console.log('📊 chatHistory最后5条ID:', chatHistory.slice(-5).map(b => b.id));
-            console.log('📊 recentBubbles的ID:', recentBubbles.map(b => b.id));
-            
-            // 【关键修改】在合并前，标记等待期间的user消息（但不加前缀，留到合并时处理）
-            const pendingBubbleIds = new Set(currentBatchIds);
-            console.log('🔍 pendingBubbleIds:', Array.from(pendingBubbleIds));
-            
-            recentBubbles = recentBubbles.map(bubble => {
-                if (bubble.role === 'user' && pendingBubbleIds.has(bubble.id)) {
-                    // 这是等待期间发送的消息，加标记（但不修改content）
-                    console.log('✅ 标记为isPending:', bubble.id, bubble.content.substring(0, 20));
-                    return {
-                        ...bubble,
-                        isPending: true
-                    };
-                }
-                return bubble;
-            });
-            
-            console.log('📊 最后5个气泡:', recentBubbles.slice(-5).map(b => ({
-                role: b.role,
-                isPending: b.isPending,
-                content: b.content.substring(0, 50) + '...'
-            })));
-            
-            // D. 转换为API格式（修改合并逻辑，不合并带isPending标记的消息）
-            let apiMessages = convertToAPIFormatWithPending(recentBubbles);
-            console.log('💰 Token优化:', recentBubbles.length, '个气泡 →', apiMessages.length, '条API消息');
-            console.log('📊 合并后的消息:', apiMessages.map(m => ({
-                role: m.role,
-                content: m.content.substring(0, 50) + '...'
-            })));
-            
-            // E. 确保最后一条是user（应该已经是了，因为等待期间的消息被移到了后面）
-            if (apiMessages.length > 0 && apiMessages[apiMessages.length - 1].role !== 'user') {
-                console.error('❌ 警告：最后一条消息不是user！');
-            }
-
-            // E. 构建最终的 Messages 列表
-            let finalSystemPrompt = config.systemPrompt;
-            
-            // 添加长期记忆到系统提示
-            if (longTermMemory && longTermMemory.metadata) {
-                let memoryPrompt = '\n\n=== 长期记忆 ===\n\n';
-                
-                // 添加基本信息
-                if (longTermMemory.basic_info && Object.keys(longTermMemory.basic_info).length > 0) {
-                    memoryPrompt += '以下是用户的基本信息，你作为用户的爱人应该深深牢记，并且贴近用户的喜好，照顾用户所有需求：\n';
-                    for (const [key, value] of Object.entries(longTermMemory.basic_info)) {
-                        memoryPrompt += `${key}: ${value}\n`;
-                    }
-                    memoryPrompt += '\n';
-                }
-                
-                // 添加情感倾向
-                if (longTermMemory.emotional_profile) {
-                    memoryPrompt += `性格: ${longTermMemory.emotional_profile}\n\n`;
-                }
-                
-                // 添加人际关系
-                if (longTermMemory.relationships) {
-                    memoryPrompt += `人际关系: ${longTermMemory.relationships}\n\n`;
-                }
-                
-                // 添加所有记忆（按last_mentioned倒序）
-                if (longTermMemory.important_events && longTermMemory.important_events.length > 0) {
-                    // 按last_mentioned倒序排序（最近的在前）
-                    const sortedMemories = [...longTermMemory.important_events].sort((a, b) => 
-                        new Date(b.last_mentioned) - new Date(a.last_mentioned)
-                    );
-                    
-                    memoryPrompt += '以下是你和用户交互时，你产生的记忆片段和你对于事件的情绪，你应该深深记住并且基于以上事实对用户的最新消息进行回复（越靠前的记忆越重要）：\n\n';
-                    
-                    sortedMemories.forEach((m, i) => {
-                        const date = new Date(m.last_mentioned).toLocaleDateString('zh-CN');
-                        memoryPrompt += `${i + 1}. ${m.title}（${date}`;
-                        if (m.mention_count) {
-                            memoryPrompt += `，提及${m.mention_count}次`;
-                        }
-                        memoryPrompt += `）\n`;
-                        memoryPrompt += `${m.content}\n`;
-                        if (m.心路历程) {
-                            memoryPrompt += `心路历程: ${m.心路历程}\n`;
-                        }
-                        memoryPrompt += '\n';
-                    });
-                }
-                
-                memoryPrompt += '=== 记忆结束 ===\n';
-                finalSystemPrompt += memoryPrompt;
-            }
-            
-            // 添加当前时间信息到系统提示
-            const now = new Date();
-            const currentTimeStr = now.toLocaleString('zh-CN', {
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', weekday: 'long', hour12: false
-            });
-            finalSystemPrompt += `\n\n[当前时间]: ${currentTimeStr}`;
-            
-            // 为每条消息添加时间信息
-            const messagesWithTime = apiMessages.map(msg => {
-                if (msg.timestamp) {
-                    const time = new Date(msg.timestamp);
-                    const timeStr = time.toLocaleString('zh-CN', {
-                        year: 'numeric', month: '2-digit', day: '2-digit',
-                        hour: '2-digit', minute: '2-digit', hour12: false
-                    });
-                    return {
-                        role: msg.role,
-                        content: `[${timeStr}] ${msg.content}`
-                    };
-                } else {
-                    return {
-                        role: msg.role,
-                        content: msg.content
-                    };
-                }
-            });
-            
-            const messages = [
-                { role: "system", content: finalSystemPrompt },
-                ...messagesWithTime 
-            ];
-            
-            // 【调试日志】输出发送给API的消息
-            console.log('📤 准备发送API请求');
-            console.log('📊 消息数量:', messages.length);
-            console.log('🔍 第一条消息角色:', messages[1]?.role);
-            console.log('🔍 最后一条消息角色:', messages[messages.length - 1]?.role);
-            console.log('📋 最后5条消息:', messages.slice(-5).map(m => ({
-                role: m.role,
-                content: m.content.substring(0, 50) + '...'
-            })));
-            console.log('📝 完整chatHistory长度:', chatHistory.length);
-            console.log('📝 最后3条chatHistory:', chatHistory.slice(-3).map(b => ({
-                role: b.role,
-                content: b.content.substring(0, 30) + '...',
-                timestamp: b.timestamp
-            })));
-            
-            // 【关键检查】API要求最后一条消息必须是user
-            const lastMessage = messages[messages.length - 1];
-            if (lastMessage.role !== 'user') {
-                console.error('❌ 错误：最后一条消息不是user角色！role =', lastMessage.role);
-                console.error('这会导致API返回空的choices数组');
-            }
-            
-            const requestBody = {
-                model: config.modelname,
-                messages: messages,
-                max_tokens: 5000,
-                temperature: 1.2
-            };
-
-            // ==================== 改用后端中转AI ====================
-            try {
-                // 不再直接调用AI API，改成调用后端
-                console.log('📤 通过后端中转调用AI...');
-                
-                // 把这批所有用户消息都传给后端存库（不只是最后一条）
-                const batchUserBubbles = currentBatchIds
-                    .map(bid => chatHistory.find(b => b.id === bid && b.role === 'user'))
-                    .filter(Boolean);
-                
-                // 兼容：取最后一条user消息作为主消息
-                const lastUserBubble = batchUserBubbles.length > 0
-                    ? batchUserBubbles[batchUserBubbles.length - 1]
-                    : chatHistory.filter(b => b.role === 'user').slice(-1)[0];
-                const rawUserMessage = lastUserBubble ? lastUserBubble.content : messages[messages.length - 1].content;
-                const messageId = lastUserBubble ? lastUserBubble.id : `msg_${Date.now()}`;
-                const aiMessageId = `msg_ai_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-                
-                // 调用后端API，传所有批次用户消息
-                const response = await fetch('/api/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        characterId: currentCharacterId,
-                        message: rawUserMessage,
-                        messageId: messageId,
-                        aiMessageId: aiMessageId,
-                        // 批量用户消息，后端逐条存库
-                        userMessages: batchUserBubbles.map(b => ({ id: b.id, content: b.content })),
-                        messages: messages
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || '发送失败');
-                }
-
-                const data = await response.json();
-
-                if (!data || !data.success) {
-                    throw new Error('后端返回数据格式不正确');
-                }
-                
-                // 清除超时计时器
-                if (apiTimeoutTimer) {
-                    clearTimeout(apiTimeoutTimer);
-                    apiTimeoutTimer = null;
-                }
-                
-                // 隐藏"对方正在输入中..."
-                hideTypingIndicator();
-
-                // 后端已按\n\n切分好，直接用segments；降级用完整content
-                if (data.segments && data.segments.length > 0) {
-                    processAndDisplaySegments(null, null, data.segments);
-                } else {
-                    processAndDisplaySegments(data.response.content, data.response.id);
-                }
-
-            } catch (error) {
-                console.error("API 调用出错:", error);
-                
-                // 清除超时计时器
-                if (apiTimeoutTimer) {
-                    clearTimeout(apiTimeoutTimer);
-                    apiTimeoutTimer = null;
-                    console.log('❌ API调用出错，已清除超时计时器');
-                }
-                
-                // 显示错误消息
-                const errorMessage = document.createElement('div');
-                errorMessage.classList.add('message', 'assistant');
-                const errorBubble = document.createElement('div');
-                errorBubble.classList.add('bubble');
-                errorBubble.textContent = `[错误] 无法获取回复。请检查您的设置和网络连接。详细错误：${error.message}`;
-                errorMessage.appendChild(errorBubble);
-                chatContainer.appendChild(errorMessage);
-                scrollToBottom();
-                
-                hideTypingIndicator();
-                isWaitingForAI = false;
-                
-                // 检查队列，如果有消息可能需要重试
-                if (pendingUserMessages.length > 0) {
-                    if (hasReachedWaitTime) {
-                        console.log('📬 错误后发现待发送消息，准备重试');
-                        setTimeout(() => sendBatchMessages(), 100);
-                    } else {
-                        console.log('📬 错误后发现待发送消息，重启计时器');
-                        startBatchTimer();
-                    }
-                }
-            }
-        }
+        // ========== 批量发送（已迁移到后端batchWorker）==========
+        function startBatchTimer() { /* 后端自动计时，前端no-op */ }
+        function cancelBatchTimer() { /* 后端自动计时，前端no-op */ }
+        async function sendBatchMessages() { /* 后端batchWorker处理，前端no-op */ }
         // ====================================
 
         /**
@@ -7814,23 +7625,44 @@ ${JSON.stringify(importedMemoryData, null, 2)}
                 };
             }
 
-            // 1. 显示用户消息(如果有引用,传递引用信息)
+            // 1. 显示用户消息
             const bubble = displayMessage(userMessage, 'user', 1, null, true, null, false, quoteInfo);
             
-            // 2. 清除引用预览
-            if (currentQuote) {
-                clearQuote();
-            }
-            
-            // 3. 清空输入框
+            // 2. 清除引用、清空输入框
+            if (currentQuote) clearQuote();
             userInput.value = '';
             
-            // 4. 将此气泡ID加入待发送队列
-            pendingUserMessages.push(bubble.id);
-            console.log('📝 添加到队列:', bubble.id, '当前队列长度:', pendingUserMessages.length);
-            
-            // 5. 启动/重启计时器
-            startBatchTimer();
+            // 3. 加入 chatHistory
+            const entry = {
+                id: bubble.id,
+                role: 'user',
+                content: userMessage,
+                timestamp: bubble.timestamp || new Date().toISOString()
+            };
+            chatHistory.push(entry);
+            saveChatHistory();
+
+            // 4. 存库（后端 batchWorker 会自动计时调AI）
+            const waitSecs = parseInt(localStorage.getItem('batchWaitTime')) || 7;
+            try {
+                await fetch('/api/chat/message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        characterId: currentCharacterId,
+                        messageId: bubble.id,
+                        content: userMessage,
+                        waitSeconds: waitSecs
+                    })
+                });
+            } catch (e) {
+                console.warn('[Send] 存库失败（消息已在本地显示）:', e.message);
+            }
+
+            // 5. 存库成功 → 单勾（已发送到服务器）
+            // 双勾和 typing 会在 batchWorker 开始调AI时通过 SSE 触发
+            updateLastMessageStatus(1);
         }
         
         /**
@@ -8308,6 +8140,8 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             
             // 4. 加载完成后，同步计数器设为当前消息数（避免重复上传已有记录）
             _lastSyncedMsgCount = chatHistory.length;
+            // ★ 初始化已同步ID集合（所有从数据库/localStorage加载的消息都标记为已同步）
+            _syncedIds = new Set(chatHistory.map(m => m.id).filter(Boolean));
             
             // 5. 渲染聊天界面
             loadHistoryUI();
@@ -8950,31 +8784,80 @@ ${JSON.stringify(importedMemoryData, null, 2)}
          */
         function favoriteMultipleMessages(bubbles) {
             const favorites = getFavorites();
-            let addedCount = 0;
             
-            bubbles.forEach(bubble => {
-                // 检查是否已收藏
+            if (bubbles.length === 1) {
+                // 单条收藏
+                const bubble = bubbles[0];
                 const exists = favorites.find(fav => fav.id === bubble.id);
-                if (!exists) {
-                    const favoriteItem = {
-                        id: bubble.id,
-                        content: bubble.content,
-                        role: bubble.role,
-                        timestamp: bubble.timestamp || new Date().toISOString(),
-                        favoritedAt: new Date().toISOString(),
-                        senderName: bubble.role === 'user' ? config.userNickname : config.aiNickname
-                    };
-                    favorites.unshift(favoriteItem);
-                    addedCount++;
+                if (exists) {
+                    showToast('已在收藏中');
+                    return;
                 }
-            });
-            
-            if (addedCount > 0) {
+                favorites.unshift({
+                    id: bubble.id,
+                    content: bubble.content,
+                    role: bubble.role,
+                    timestamp: bubble.timestamp || new Date().toISOString(),
+                    favoritedAt: new Date().toISOString(),
+                    senderName: bubble.role === 'user' ? config.userNickname : config.aiNickname,
+                    isGroup: false
+                });
                 saveFavorites(favorites);
-                showToast(`已添加 ${addedCount} 条消息到收藏`);
-                console.log('⭐ 批量收藏:', addedCount, '条消息');
+                showToast('已添加到收藏');
+                return;
+            }
+            
+            // 多条：询问是否合并
+            const merge = confirm(`已选择${bubbles.length}条消息\n\n点击"确定"合并为一组\n点击"取消"分别收藏`);
+            
+            if (merge) {
+                // 合并为一组
+                const groupId = 'fav_group_' + Date.now();
+                const groupItems = bubbles.map(b => ({
+                    id: b.id,
+                    content: b.content,
+                    role: b.role,
+                    timestamp: b.timestamp || new Date().toISOString(),
+                    senderName: b.role === 'user' ? config.userNickname : config.aiNickname
+                }));
+                
+                const previewText = groupItems[0].content.slice(0, 30) + (groupItems[0].content.length > 30 ? '…' : '');
+                
+                favorites.unshift({
+                    id: groupId,
+                    isGroup: true,
+                    count: groupItems.length,
+                    preview: previewText,
+                    items: groupItems,
+                    favoritedAt: new Date().toISOString(),
+                    senderName: groupItems[0].senderName
+                });
+                saveFavorites(favorites);
+                showToast(`已将${bubbles.length}条消息作为一组收藏`);
             } else {
-                showToast('所有消息已在收藏中');
+                // 分别收藏
+                let addedCount = 0;
+                bubbles.forEach(bubble => {
+                    const exists = favorites.find(fav => fav.id === bubble.id);
+                    if (!exists) {
+                        favorites.unshift({
+                            id: bubble.id,
+                            content: bubble.content,
+                            role: bubble.role,
+                            timestamp: bubble.timestamp || new Date().toISOString(),
+                            favoritedAt: new Date().toISOString(),
+                            senderName: bubble.role === 'user' ? config.userNickname : config.aiNickname,
+                            isGroup: false
+                        });
+                        addedCount++;
+                    }
+                });
+                if (addedCount > 0) {
+                    saveFavorites(favorites);
+                    showToast(`已添加${addedCount}条消息到收藏`);
+                } else {
+                    showToast('所有消息已在收藏中');
+                }
             }
         }
         
@@ -9858,49 +9741,58 @@ ${JSON.stringify(importedMemoryData, null, 2)}
         }
 
         // ==================== 新消息轮询（前台时每5秒检测） ====================
-        let _pollTimer = null;
-        let _lastPollSeq = 0;
+        let _sseSource = null;   // EventSource 连接
+        let _lastPollSeq = 0;    // 记录已知最大seq，SSE消息去重用
 
         function startPolling(characterId) {
             stopPolling();
             if (!characterId || !isAuthenticated) return;
-            _pollTimer = setInterval(() => pollNewMessages(characterId), 5000);
+
+            _sseSource = new EventSource(`/api/chat/stream/${characterId}`, { withCredentials: true });
+
+            // AI 回复到达
+            _sseSource.addEventListener('message', (e) => {
+                try {
+                    const msg = JSON.parse(e.data);
+                    if (chatHistory.some(b => b.id === msg.id)) return;
+                    if (msg.seq != null && msg.seq <= _lastPollSeq) return;
+
+                    const entry = { id: msg.id, role: msg.role, content: msg.content, timestamp: msg.timestamp, seq: msg.seq };
+                    chatHistory.push(entry);
+                    pendingSummaryBubbles.push(entry);
+                    if (msg.seq != null) _lastPollSeq = Math.max(_lastPollSeq, msg.seq);
+
+                    if (msg.role === 'assistant') {
+                        displayMessage(msg.content, 'assistant', 0, msg.timestamp, false, msg.id);
+                        hideTypingIndicator();
+                        saveChatHistory();
+                        checkAutoSummary();
+                    }
+                } catch (_) {}
+            });
+
+            // batchWorker 开始调AI：双勾 + 显示"对方正在输入"
+            _sseSource.addEventListener('typing', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    if (data.status === 'start') {
+                        updateLastMessageStatus(2);  // 双勾
+                        showTypingIndicator();
+                    }
+                } catch (_) {}
+            });
+
+            _sseSource.onerror = () => {
+                // 连接断了（网络抖动、服务重启），3秒后重连
+                stopPolling();
+                setTimeout(() => {
+                    if (currentCharacterId === characterId) startPolling(characterId);
+                }, 3000);
+            };
         }
 
         function stopPolling() {
-            if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
-        }
-
-        async function pollNewMessages(characterId) {
-            // 正在等待AI回复时不轮询（避免重复显示）
-            if (typeof isWaitingForAI !== 'undefined' && isWaitingForAI) return;
-            try {
-                const res = await fetch(
-                    `/api/chat/history/${characterId}/poll?afterSeq=${_lastPollSeq}`,
-                    { credentials: 'include' }
-                );
-                const data = await res.json();
-                if (!data.success || data.count === 0) return;
-
-                for (const msg of data.messages) {
-                    // 用seq做去重（更可靠，不依赖id格式）
-                    const seqExists = msg.seq != null && msg.seq <= _lastPollSeq;
-                    const idExists = chatHistory.some(b => b.id === msg.id);
-                    if (!seqExists && !idExists) {
-                        const entry = {
-                            id: msg.id,
-                            role: msg.role,
-                            content: msg.content,
-                            timestamp: msg.timestamp,
-                            seq: msg.seq
-                        };
-                        chatHistory.push(entry);
-                        displayMessage(msg.content, msg.role, msg.role === 'user' ? 2 : 0,
-                            msg.timestamp, false, msg.id);
-                    }
-                    if (msg.seq != null) _lastPollSeq = Math.max(_lastPollSeq, msg.seq);
-                }
-            } catch (e) { /* 轮询失败静默 */ }
+            if (_sseSource) { _sseSource.close(); _sseSource = null; }
         }
         
         // 监听安装提示
@@ -9910,8 +9802,1173 @@ ${JSON.stringify(importedMemoryData, null, 2)}
             deferredPrompt = e;
             console.log('💡 可以安装到主屏幕');
         });
+
+        // ---- 暴露给外部 script（钱包系统等）使用的接口 ----
+        window._getChatHistory    = () => chatHistory;
+        window._getPendingMsgs    = () => pendingUserMessages;
+        window._pushToChatHistory = (entry) => { chatHistory.push(entry); };
+        // _pushToPending：把气泡存入数据库并触发batchWorker计时
+        window._pushToPending = (id) => {
+            const bubble = chatHistory.find(b => b.id === id);
+            if (!bubble || !currentCharacterId) return;
+            const waitSecs = parseInt(localStorage.getItem('batchWaitTime')) || 7;
+            fetch('/api/chat/message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    characterId: currentCharacterId,
+                    messageId: bubble.id,
+                    content: bubble.content,
+                    waitSeconds: waitSecs
+                })
+            }).catch(e => console.warn('[_pushToPending] 存库失败:', e.message));
+        };
+        window._saveChatHistory   = () => saveChatHistory();
+        window._startBatchTimer   = () => { /* no-op：后端batchWorker自动计时 */ };
+        window._displayMessage    = (...args) => displayMessage(...args);
+        // 登录状态和当前角色ID（给钱包等外部脚本读取）
+        Object.defineProperty(window, 'isAuthenticated', {
+            get: () => isAuthenticated,
+            configurable: true
+        });
+        Object.defineProperty(window, 'currentCharacterId', {
+            get: () => currentCharacterId,
+            configurable: true
+        });
         
     </script>
+
+
+    <!-- ===== 钱包系统 ===== -->
+    <script>
+    // ---- 核心数据（后端驱动版） ----
+    // 内存缓存，避免每次都要 await
+    let _walletBalanceCache = 200;
+
+    // 把钱包产生的气泡（assistant侧）直接 append 到数据库
+    // 原因：这类气泡不走 /api/chat/send（因为不需要触发AI），必须手动存库
+    async function walletAppendMsgToDB(msg) {
+        if (!window.isAuthenticated || !window.currentCharacterId) return;
+        const charId = window.currentCharacterId;
+        try {
+            await fetch(`/api/chat/history/${charId}/append`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ message: {
+                    id: msg.id,
+                    role: msg.role,
+                    content: msg.content,
+                    timestamp: msg.timestamp || new Date().toISOString(),
+                    metadata: msg.metadata || null
+                }})
+            });
+        } catch(e) {
+            console.warn('[Wallet] 气泡存库失败（本地已保存）:', e.message);
+        }
+    }
+
+    function walletBalance() {
+        return _walletBalanceCache;
+    }
+
+    // 调后端记录一笔流水并更新余额
+    async function walletTransaction(type, amount, fromName, note, characterId) {
+        try {
+            if (window.LinglowAPI && window.isAuthenticated) {
+                const result = await window.LinglowAPI.Wallet.transaction(type, amount, {
+                    note: note || '',
+                    fromName: fromName || '',
+                    characterId: characterId || window.currentCharacterId || null
+                });
+                if (result && result.success) {
+                    _walletBalanceCache = result.balance;
+                    refreshWalletUI();
+                    return result.balance;
+                }
+            }
+        } catch(e) {
+            console.warn('[Wallet] 后端同步失败，仅更新本地缓存:', e.message);
+        }
+        // 降级：本地计算
+        if (type === 'in') {
+            _walletBalanceCache = parseFloat((_walletBalanceCache + parseFloat(amount)).toFixed(2));
+        } else {
+            _walletBalanceCache = parseFloat((_walletBalanceCache - parseFloat(amount)).toFixed(2));
+        }
+        refreshWalletUI();
+        return _walletBalanceCache;
+    }
+
+    // 同步设置余额（仅更新缓存+UI，不记流水）— 内部用
+    function _walletSetCacheBalance(amount) {
+        _walletBalanceCache = parseFloat(parseFloat(amount).toFixed(2));
+        refreshWalletUI();
+    }
+
+    // 兼容旧代码：walletSetBalance 仍可调但改为调后端set-balance
+    function walletSetBalance(amount) {
+        _walletBalanceCache = parseFloat(parseFloat(amount).toFixed(2));
+        refreshWalletUI();
+        if (window.LinglowAPI && window.isAuthenticated) {
+            window.LinglowAPI.Wallet.setBalance(amount).catch(e =>
+                console.warn('[Wallet] setBalance 后端同步失败:', e.message)
+            );
+        }
+    }
+
+    // 兼容旧代码：walletAddTx 改为异步调后端
+    function walletAddTx(type, amount, from, note) {
+        walletTransaction(type, amount, from, note, window.currentCharacterId);
+    }
+
+    // ---- 全局接口（番茄钟等外部调用） ----
+    window.addToWallet = function(amount, reason) {
+        walletTransaction('in', amount, '系统奖励', reason || '', null);
+        console.log('[Wallet] 收入:', amount, '原因:', reason);
+    };
+
+    // ---- 用户→角色转账 ----
+    function openWalletPage() {
+        refreshWalletUI();
+        showPage('wallet-page');
+    }
+
+    // 从聊天界面加号菜单打开转账
+    function openTransferFromChat() {
+        window._transferOriginPage = 'chat-page';
+        document.getElementById('plus-menu-panel').style.display = 'none';
+        // 填写收款方信息（当前角色）
+        const nameEl = document.getElementById('transfer-name');
+        const avatarEl = document.getElementById('transfer-avatar');
+        const balEl = document.getElementById('transfer-my-balance');
+        if (nameEl) nameEl.textContent = (window.config && config.aiNickname) ? config.aiNickname : '对方';
+        if (balEl) balEl.textContent = walletBalance().toFixed(2);
+        // 头像
+        if (avatarEl) {
+            const charId = window.currentCharacterId;
+            const chars = JSON.parse(localStorage.getItem('characters') || '{}');
+            const char = chars[charId];
+            if (char && char.avatar && char.avatar.startsWith('data:')) {
+                avatarEl.innerHTML = `<img src="${char.avatar}" style="width:100%;height:100%;object-fit:cover;">`;
+            } else if (char && char.avatar) {
+                avatarEl.textContent = char.avatar;
+            } else {
+                avatarEl.textContent = (config.aiNickname || 'AI')[0];
+            }
+        }
+        // 清空上次输入
+        const amtEl = document.getElementById('transfer-amount-input');
+        const noteEl = document.getElementById('transfer-note-input');
+        if (amtEl) amtEl.value = '';
+        if (noteEl) noteEl.value = '';
+        showPage('transfer-page');
+    }
+
+    function confirmTransferToChar() {
+        const amtRaw = parseFloat(document.getElementById('transfer-amount-input').value);
+        if (isNaN(amtRaw) || amtRaw <= 0) { showToast('请输入有效金额'); return; }
+        const amount = Math.round(amtRaw * 100) / 100;
+        const cur = walletBalance();
+        if (amount > cur) { showToast('余额不足'); return; }
+        const note = (document.getElementById('transfer-note-input').value || '').trim();
+        const toName = document.getElementById('transfer-name').textContent || '对方';
+
+        // 乐观更新缓存
+        _walletBalanceCache = parseFloat((_walletBalanceCache - amount).toFixed(2));
+        refreshWalletUI();
+        walletTransaction('out', amount, toName, note, window.currentCharacterId);
+
+        // 关闭转账页，回到来源界面
+        const originPage = window._transferOriginPage || 'chat-page';
+        showPage(originPage);
+
+        // 只有从聊天界面发起的才插入气泡
+        if (originPage !== 'chat-page') return;
+
+        // 在聊天界面插入转账气泡（用户侧）
+        const transferMsgText = `[转账给${toName}] ¥${amount.toFixed(2)}${note ? ' · ' + note : ''}`;
+
+        // 写入 chatHistory（纯文字，供 AI 读取）
+        const bubbleId = 'bubble_' + Date.now() + '_transfer';
+        window._pushToChatHistory({
+            id: bubbleId,
+            role: 'user',
+            content: transferMsgText,
+            timestamp: new Date().toISOString(),
+            isTransfer: true
+        });
+        window._saveChatHistory();
+
+        // 加入待发送队列，和普通消息一起走 batchSendTimer 流程
+        window._pushToPending(bubbleId);
+
+        // 渲染转账卡片气泡（不显示已读勾，status=0）
+        setTimeout(() => {
+            window._displayMessage(transferMsgText, 'user', 0, new Date().toISOString(), false, bubbleId, false);
+            const content = document.querySelector('#chat-page .content');
+            if (content) content.scrollTop = content.scrollHeight;
+        }, 100);
+
+        // 重启计时器（和普通消息完全一致的流程）
+        window._startBatchTimer();
+    }
+
+    // ---- 角色→用户收款 ----
+    function receiveMoneyFromChar(amount, fromName) {
+        // 只插入气泡，钱等用户点「收款」后才到账
+        const bubbleId = 'bubble_' + Date.now() + '_receive';
+        const receiveMsgText = `[转账给你] ¥${parseFloat(amount).toFixed(2)}`;
+        const entry = {
+            id: bubbleId,
+            role: 'assistant',
+            content: receiveMsgText,
+            timestamp: new Date().toISOString(),
+            isTransfer: true
+        };
+        window._pushToChatHistory(entry);
+        walletAppendMsgToDB(entry);
+        window._saveChatHistory();
+
+        setTimeout(() => {
+            window._displayMessage(receiveMsgText, 'assistant', 0, new Date().toISOString(), false, bubbleId, false);
+            const content = document.querySelector('#chat-page .content');
+            if (content) content.scrollTop = content.scrollHeight;
+        }, 100);
+
+        console.log('[Wallet] 收到转账气泡:', amount, '来自:', fromName, '（待用户收款）');
+    }
+
+    // ---- UI 刷新 ----
+    function refreshWalletUI(txList_data) {
+        const bal = walletBalance();
+        const fmt = bal.toFixed(2);
+
+        // 钱包页余额
+        const dispEl = document.getElementById('wallet-balance-display');
+        if (dispEl) dispEl.textContent = fmt;
+
+        // 我的页面入口余额预览
+        const meEl = document.getElementById('me-wallet-balance');
+        if (meEl) meEl.textContent = bal > 0 ? `¥${fmt}` : '';
+
+        // 交易记录（传入数据则直接渲染，否则跳过）
+        if (txList_data !== undefined) {
+            _renderTxList(txList_data);
+        }
+    }
+
+    function _renderTxList(list) {
+        const txList = document.getElementById('wallet-tx-list');
+        if (!txList) return;
+        if (!list || list.length === 0) {
+            txList.innerHTML = '<div style="text-align:center;color:#ccc;font-size:14px;padding:40px 0;">暂无交易记录</div>';
+            return;
+        }
+        txList.innerHTML = list.map(tx => {
+            const d = new Date(tx.created_at || tx.time);
+            const dateStr = `${d.getMonth()+1}/${d.getDate()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+            const isIn = tx.type === 'in';
+            const fromLabel = tx.from_name || tx.from || (isIn ? '收入' : '支出');
+            const noteLabel = tx.note || '';
+            return `<div style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f2f2f2;">
+                <div style="width:40px;height:40px;border-radius:50%;background:${isIn?'#e8f5e9':'#fff3e0'};display:flex;align-items:center;justify-content:center;margin-right:12px;flex-shrink:0;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${isIn?'#07c160':'#ff9800'}" stroke-width="2.5" stroke-linecap="round">
+                        ${isIn ? '<path d="M12 19V5M5 12l7 7 7-7"/>' : '<path d="M12 5v14M5 12l7-7 7 7"/>'}
+                    </svg>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:15px;color:#333;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fromLabel}</div>
+                    <div style="font-size:12px;color:#999;margin-top:2px;">${noteLabel ? noteLabel + ' · ' : ''}${dateStr}</div>
+                </div>
+                <div style="font-size:16px;font-weight:600;color:${isIn?'#07c160':'#333'};flex-shrink:0;">${isIn?'+':'-'}¥${parseFloat(tx.amount).toFixed(2)}</div>
+            </div>`;
+        }).join('');
+    }
+
+    // 从后端加载钱包数据（余额 + 流水）并刷新UI
+    async function loadWalletFromBackend() {
+        if (!window.LinglowAPI || !window.isAuthenticated) return;
+        try {
+            const result = await window.LinglowAPI.Wallet.get();
+            if (result && result.success) {
+                _walletBalanceCache = result.balance;
+                refreshWalletUI(result.transactions || []);
+            }
+        } catch(e) {
+            console.warn('[Wallet] 后端加载失败，使用缓存:', e.message);
+            refreshWalletUI();
+        }
+    }
+
+    // ---- 转账气泡 HTML 生成 ----
+    function renderTransferBubble(direction, amount, name, note) {
+        const isOut = direction === 'out';
+        const amtStr = parseFloat(amount).toFixed(2);
+        const label = isOut ? `转账给${name}` : `${name}转账给你`;
+        const noteHtml = note ? `<div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px;">${note}</div>` : '';
+        return `<div style="border-radius:8px;overflow:hidden;min-width:200px;max-width:250px;">
+            <div style="background:linear-gradient(135deg,#f5a11c,#f0920a);padding:14px 16px 14px 14px;display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="24" height="24" viewBox="0 0 30 30" fill="none">
+                        <path d="M24 11H4M24 11l-5-5M24 11l-5 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 19H26M6 19l5-5M6 19l5 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:15px;color:#fff;font-weight:500;margin-bottom:3px;">${label}</div>
+                    <div style="font-size:22px;font-weight:600;color:#fff;letter-spacing:0.5px;">¥ ${amtStr}</div>
+                    ${noteHtml}
+                </div>
+            </div>
+            <div style="background:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;color:#999;">微信转账</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+            </div>
+        </div>`;
+    }
+
+    // ---- 转账详情页 ----
+    // _pendingTransferDetail: { direction, amount, note, fromName, bubbleId, timestamp }
+    function openTransferDetail(direction, amount, note, fromName, bubbleId, timestamp) {
+        // direction: 'in' = 对方转给我（可操作），'out' = 我转给对方（只读）
+        window._pendingTransferDetail = { direction, amount, note, fromName, bubbleId, timestamp };
+        const amtStr = parseFloat(amount).toFixed(2);
+
+        // 金额
+        document.getElementById('td-amount').textContent = `¥ ${amtStr}`;
+
+        // 标签：对方转给我 → "XX 转给你"；我转给对方 → "转给 XX"
+        document.getElementById('td-label').textContent =
+            direction === 'in' ? `${fromName} 转给你` : `转给 ${fromName}`;
+
+        // 转账方：对方转给我 → fromName；我转给对方 → 我自己
+        document.getElementById('td-from').textContent =
+            direction === 'in' ? fromName : (config.userNickname || '我');
+
+        // 状态
+        const statusEl = document.getElementById('td-status');
+        statusEl.textContent = '待收款';
+        statusEl.style.color = '#f5a11c';
+
+        // 备注
+        const noteEl = document.getElementById('td-note');
+        if (note) {
+            document.getElementById('td-note-text').textContent = note;
+            noteEl.style.display = 'block';
+        } else {
+            noteEl.style.display = 'none';
+        }
+
+        // 时间
+        const t = new Date(timestamp || Date.now());
+        document.getElementById('td-time').textContent =
+            `${t.getFullYear()}/${t.getMonth()+1}/${t.getDate()} ` +
+            `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}`;
+
+        // 头像
+        const avatarEl = document.getElementById('td-avatar');
+        const charId = window.currentCharacterId;
+        const chars = JSON.parse(localStorage.getItem('characters') || '{}');
+        const char = chars[charId];
+        if (char && char.avatar && char.avatar.startsWith('data:')) {
+            avatarEl.innerHTML = `<img src="${char.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+        } else if (char && char.avatar) {
+            avatarEl.textContent = char.avatar;
+        } else {
+            avatarEl.textContent = (config.aiNickname || 'AI')[0];
+        }
+
+        // 操作区
+        if (direction === 'in') {
+            // 对方转来的：大收款按钮 + 退回小字
+            document.getElementById('td-accept-area').style.display = 'block';
+            document.getElementById('td-readonly-area').style.display = 'none';
+        } else {
+            // 我转出的：只读，等待对方操作
+            document.getElementById('td-accept-area').style.display = 'none';
+            document.getElementById('td-readonly-area').style.display = 'block';
+        }
+
+        showPage('transfer-detail-page');
+    }
+
+    async function doTransferAccept() {
+        const d = window._pendingTransferDetail;
+        if (!d) return;
+        const amount = parseFloat(d.amount);
+        // 先乐观更新缓存，再后端同步
+        _walletBalanceCache = parseFloat((_walletBalanceCache + amount).toFixed(2));
+        refreshWalletUI();
+        walletTransaction('in', amount, d.fromName, d.note || '', window.currentCharacterId);
+        document.getElementById('td-status').textContent = '已收款';
+        document.getElementById('td-status').style.color = '#07c160';
+        document.getElementById('td-accept-area').style.display = 'none';
+
+        // 插入收款成功气泡（assistant侧）
+        const successText = `[收款成功] ¥${amount.toFixed(2)}`;
+        const bid = 'bubble_' + Date.now() + '_accept';
+        const successEntry = { id: bid, role: 'assistant', content: successText, timestamp: new Date().toISOString() };
+        window._pushToChatHistory(successEntry);
+        walletAppendMsgToDB(successEntry);
+        window._saveChatHistory();
+        setTimeout(() => {
+            window._displayMessage(successText, 'assistant', 0, new Date().toISOString(), false, bid, false);
+            const c = document.querySelector('#chat-page .content');
+            if (c) c.scrollTop = c.scrollHeight;
+        }, 300);
+
+        // 插入一条用户侧的"系统触发"气泡让 AI 知道用户收了款，走正常队列
+        const ackText = `[已收款 ¥${amount.toFixed(2)}]`;
+        const ackId = 'bubble_' + Date.now() + '_ack';
+        window._pushToChatHistory({ id: ackId, role: 'user', content: ackText, timestamp: new Date().toISOString(), isSystem: true });
+        window._saveChatHistory();
+        window._pushToPending(ackId);
+        window._startBatchTimer();
+
+        window._pendingTransferDetail = null;
+        setTimeout(() => showPage('chat-page'), 600);
+    }
+
+    function doTransferRefund() {
+        const d = window._pendingTransferDetail;
+        if (!d) return;
+        const amount = parseFloat(d.amount);
+        document.getElementById('td-status').textContent = '已退回';
+        document.getElementById('td-status').style.color = '#999';
+        document.getElementById('td-accept-area').style.display = 'none';
+
+        // 插入退回气泡（用户侧）并加入队列
+        const refundText = `[退回] ¥${amount.toFixed(2)} 来自${config.userNickname || '我'}`;
+        const bid = 'bubble_' + Date.now() + '_refund';
+        window._pushToChatHistory({ id: bid, role: 'user', content: refundText, timestamp: new Date().toISOString() });
+        window._saveChatHistory();
+        setTimeout(() => {
+            window._displayMessage(refundText, 'user', 0, new Date().toISOString(), false, bid, false);
+            const c = document.querySelector('#chat-page .content');
+            if (c) c.scrollTop = c.scrollHeight;
+        }, 300);
+        window._pushToPending(bid);
+        window._startBatchTimer();
+
+        window._pendingTransferDetail = null;
+        setTimeout(() => showPage('chat-page'), 600);
+    }
+
+    // ---- 用户发起收款（向角色要钱）----
+    function openCollectFromChat() {
+        window._collectOriginPage = 'chat-page';
+        document.getElementById('plus-menu-panel').style.display = 'none';
+        const nameEl   = document.getElementById('collect-name');
+        const avatarEl = document.getElementById('collect-avatar');
+        if (nameEl)   nameEl.textContent = (window.config && config.aiNickname) ? config.aiNickname : '对方';
+        if (avatarEl) {
+            const charId = window.currentCharacterId;
+            const chars  = JSON.parse(localStorage.getItem('characters') || '{}');
+            const char   = chars[charId];
+            if (char && char.avatar && char.avatar.startsWith('data:')) {
+                avatarEl.innerHTML = `<img src="${char.avatar}" style="width:100%;height:100%;object-fit:cover;">`;
+            } else if (char && char.avatar) {
+                avatarEl.textContent = char.avatar;
+            } else {
+                avatarEl.textContent = (config.aiNickname || 'AI')[0];
+            }
+        }
+        document.getElementById('collect-amount-input').value = '';
+        document.getElementById('collect-note-input').value   = '';
+        showPage('collect-page');
+    }
+
+    function confirmCollectFromChar() {
+        const amtRaw = parseFloat(document.getElementById('collect-amount-input').value);
+        if (isNaN(amtRaw) || amtRaw <= 0) { showToast('请输入有效金额'); return; }
+        const amount = Math.round(amtRaw * 100) / 100;
+        const note   = (document.getElementById('collect-note-input').value || '').trim();
+        const toName = document.getElementById('collect-name').textContent || '对方';
+
+        showPage('chat-page');
+
+        // 插入收款请求气泡（用户侧，角色收到后可以转账）
+        const collectMsgText = `[收款请求] ¥${amount.toFixed(2)}${note ? ' · ' + note : ''}`;
+        const bubbleId = 'bubble_' + Date.now() + '_collect';
+        window._pushToChatHistory({
+            id: bubbleId,
+            role: 'user',
+            content: collectMsgText,
+            timestamp: new Date().toISOString(),
+        });
+        window._saveChatHistory();
+
+        // 加入待发送队列，走 batchSendTimer 正常流程
+        window._pushToPending(bubbleId);
+
+        setTimeout(() => {
+            window._displayMessage(collectMsgText, 'user', 0, new Date().toISOString(), false, bubbleId, false);
+            const content = document.querySelector('#chat-page .content');
+            if (content) content.scrollTop = content.scrollHeight;
+        }, 100);
+
+        // 重启计时器
+        window._startBatchTimer();
+    }
+
+    // ---- 渲染收款请求气泡 ----
+    function renderCollectBubble(amount, note) {
+        const amtStr = parseFloat(amount).toFixed(2);
+        const noteHtml = note ? `<div style="font-size:11px;color:rgba(255,255,255,0.8);margin-top:2px;">${note}</div>` : '';
+        return `<div style="border-radius:8px;overflow:hidden;min-width:200px;max-width:250px;">
+            <div style="background:linear-gradient(135deg,#07c160,#06ad56);padding:14px 16px 14px 14px;display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 19V5M5 12l7-7 7 7"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:15px;color:#fff;font-weight:500;margin-bottom:3px;">向你收款</div>
+                    <div style="font-size:22px;font-weight:600;color:#fff;letter-spacing:0.5px;">¥ ${amtStr}</div>
+                    ${noteHtml}
+                </div>
+            </div>
+            <div style="background:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;color:#999;">微信转账</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+        </div>`;
+    }
+
+    // ---- 渲染退回气泡 ----
+    function renderRefundBubble(amount, fromName) {
+        const amtStr = parseFloat(amount).toFixed(2);
+        return `<div style="border-radius:8px;overflow:hidden;min-width:200px;max-width:250px;">
+            <div style="background:linear-gradient(135deg,#e8870a,#d4730a);padding:14px 16px 14px 14px;display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="24" height="24" viewBox="0 0 30 30" fill="none">
+                        <path d="M24 11H4M24 11l-5-5M24 11l-5 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M6 19H26M6 19l5-5M6 19l5 5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:15px;color:#fff;font-weight:500;margin-bottom:3px;">已退回</div>
+                    <div style="font-size:22px;font-weight:600;color:#fff;letter-spacing:0.5px;">¥ ${amtStr}</div>
+                </div>
+            </div>
+            <div style="background:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;color:#999;">微信转账</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+        </div>`;
+    }
+
+    // ---- 收款成功气泡（用户点击「收款」后显示）----
+    function renderCollectSuccessBubble(amount) {
+        const amtStr = parseFloat(amount).toFixed(2);
+        return `<div style="border-radius:8px;overflow:hidden;min-width:200px;max-width:250px;">
+            <div style="background:linear-gradient(135deg,#f5a11c,#f0920a);padding:14px 16px 14px 14px;display:flex;align-items:center;gap:12px;">
+                <div style="width:46px;height:46px;border-radius:50%;border:2px solid rgba(255,255,255,0.9);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 6L9 17l-5-5"/>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-size:15px;color:#fff;font-weight:500;margin-bottom:3px;">已收款</div>
+                    <div style="font-size:22px;font-weight:600;color:#fff;letter-spacing:0.5px;">¥ ${amtStr}</div>
+                </div>
+            </div>
+            <div style="background:#fff;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:13px;color:#999;">微信收款</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+        </div>`;
+    }
+
+    // ---- AI 输出 [收款请求:N] 标签时处理 ----
+    // 在 processAndDisplaySegments 里通过 cleanApiResponse 之前已有 [转账:N] 解析
+    // 退回气泡由 AI 输出 [退回:N] 标签触发
+
+    // 触发 AI 回复（走正常批量计时器，使用用户设置的等待时间）
+    function triggerAIReplyWithDelay() {
+        // 取消已有的批量计时器
+        if (window.batchSendTimer) {
+            clearTimeout(window.batchSendTimer);
+            window.batchSendTimer = null;
+        }
+        // 用版本号作废旧的延迟调用
+        if (!window._walletTriggerToken) window._walletTriggerToken = 0;
+        const myToken = ++window._walletTriggerToken;
+
+        const waitTime = (parseInt(localStorage.getItem('batchWaitTime')) || 7) * 1000;
+        setTimeout(() => {
+            // 如果有更新的调用，本次作废
+            if (window._walletTriggerToken !== myToken) return;
+            if (typeof isWaitingForAI !== 'undefined' && isWaitingForAI) return;
+            if (typeof callAPIToGenerate === 'function') {
+                window._allowCallAPI = true;
+                callAPIToGenerate();
+            }
+        }, waitTime);
+    }
+
+    window._parseSpecialTags = function(text) {
+        let processed = text;
+        // [退回:N] → 退回气泡
+        const refundMatches = [...processed.matchAll(/\[退回[:：](\d+(?:\.\d{1,2})?)\]/g)];
+        if (refundMatches.length > 0) {
+            refundMatches.forEach(m => {
+                const amount = parseFloat(m[1]);
+                const fromName = config.aiNickname || '对方';
+                _walletBalanceCache = parseFloat((_walletBalanceCache + amount).toFixed(2));
+                refreshWalletUI();
+                walletTransaction('in', amount, fromName, '退回转账', window.currentCharacterId);
+                const bubbleId = 'bubble_' + Date.now() + '_refund';
+                const refundText = `[退回] ¥${amount.toFixed(2)} 来自${fromName}`;
+                const refundEntry = { id: bubbleId, role: 'assistant', content: refundText, timestamp: new Date().toISOString() };
+                window._pushToChatHistory(refundEntry);
+                walletAppendMsgToDB(refundEntry);
+                window._saveChatHistory();
+                setTimeout(() => {
+                    window._displayMessage(refundText, 'assistant', 0, new Date().toISOString(), false, bubbleId, false);
+                    const c = document.querySelector('#chat-page .content');
+                    if (c) c.scrollTop = c.scrollHeight;
+                }, 200);
+            });
+            processed = processed.replace(/\[退回[:：]\d+(?:\.\d{1,2})?\]/g, '').trim();
+        }
+
+        // [收款:N] → AI 收下了用户的转账，显示收款成功气泡
+        const acceptMatches = [...processed.matchAll(/\[收款[:：](\d+(?:\.\d{1,2})?)\]/g)];
+        if (acceptMatches.length > 0) {
+            acceptMatches.forEach(m => {
+                const amount = parseFloat(m[1]);
+                const bubbleId = 'bubble_' + Date.now() + '_aiaccept_' + Math.random().toString(36).slice(2,6);
+                const acceptText = `[收款成功] ¥${amount.toFixed(2)}`;
+                const acceptEntry = { id: bubbleId, role: 'assistant', content: acceptText, timestamp: new Date().toISOString() };
+                window._pushToChatHistory(acceptEntry);
+                walletAppendMsgToDB(acceptEntry);
+                window._saveChatHistory();
+                setTimeout(() => {
+                    window._displayMessage(acceptText, 'assistant', 0, new Date().toISOString(), false, bubbleId, false);
+                    const c = document.querySelector('#chat-page .content');
+                    if (c) c.scrollTop = c.scrollHeight;
+                }, 300);
+            });
+            processed = processed.replace(/\[收款[:：]\d+(?:\.\d{1,2})?\]/g, '').trim();
+        }
+
+        return processed;
+    };
+
+    // ---- 初始化 ----
+    (function initWallet() {
+        // 登录后从后端加载余额；未登录使用缓存默认值
+        async function tryLoadFromBackend() {
+            if (window.isAuthenticated && window.LinglowAPI) {
+                await loadWalletFromBackend();
+            } else {
+                refreshWalletUI();
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryLoadFromBackend);
+        } else {
+            tryLoadFromBackend();
+        }
+
+        // 每次打开钱包页或我的页面，从后端重新拉取（获取最新流水）
+        const _origShowPage = window.showPage;
+        if (_origShowPage) {
+            window.showPage = function(pageId, ...args) {
+                _origShowPage.call(this, pageId, ...args);
+                if (pageId === 'me-page' || pageId === 'wallet-page') {
+                    loadWalletFromBackend();
+                }
+            };
+        }
+    })();
+    </script>
+
+
+    <!-- ===== 状态栏系统 ===== -->
+    <script>
+    // ---- 存储 ----
+    function statusKey() { return `char_${window.currentCharacterId}_status`; }
+
+    function statusLoad() {
+        try { return JSON.parse(localStorage.getItem(statusKey()) || 'null') || {}; } catch(e) { return {}; }
+    }
+
+    function statusSave(s) {
+        localStorage.setItem(statusKey(), JSON.stringify(s));
+    }
+
+    // ---- 好感度档位 ----
+    function affectionLabel(n) {
+        n = parseInt(n);
+        if (isNaN(n)) return '—';
+        if (n < 0)   return `厌恶 (${n})`;
+        if (n < 20)  return `陌生 (${n})`;
+        if (n < 40)  return `熟悉 (${n})`;
+        if (n < 60)  return `喜欢 (${n})`;
+        if (n < 80)  return `爱慕 (${n})`;
+        return `此生不渝 (${n})`;
+    }
+
+    // ---- 解析 AI 回复中的状态块，更新存储，返回去掉状态块的干净文本 ----
+    function statusParseAndStrip(text) {
+        // 宽容匹配：支持 <<STATUS>>...<<END_STATUS>> 或 <status>...</status>（大小写不限，前后允许空白行）
+        const re = /(?:<<STATUS>>|<status>)([\s\S]*?)(?:<<END_STATUS>>|<\/status>)/i;
+        const m = text.match(re);
+        if (!m) return text;   // 没有状态块，静默保留上次状态
+
+        const block = m[1];
+        const status = statusLoad();
+
+        // 逐行解析 key:value
+        block.split('\n').forEach(line => {
+            const sep = line.indexOf(':');
+            if (sep < 0) return;
+            const key = line.slice(0, sep).trim().toLowerCase();
+            const val = line.slice(sep + 1).trim();
+            if (!val) return;
+            if (key === 'location' || key === '位置') status.location = val;
+            else if (key === 'mood' || key === '心情') status.mood = val;
+            else if (key === 'affection' || key === '好感度') {
+                const n = parseInt(val);
+                if (!isNaN(n)) status.affection = Math.max(-100, Math.min(100, n));
+            }
+            else if (key === 'outfit' || key === '穿着') status.outfit = val;
+            else if (key === 'activity' || key === '当前在做' || key === '在做') status.activity = val;
+        });
+
+        statusSave(status);
+        statusRenderDrawer();
+        console.log('[Status] 更新:', status);
+
+        // 去掉状态块（以及块前后多余空行），返回干净文本
+        return text.replace(re, '').replace(/^\n+/, '').trim();
+    }
+
+    // ---- 构建注入 system prompt 的文本 ----
+    function statusBuildPromptInjection() {
+        const s = statusLoad();
+        const hasAny = s.location || s.mood || s.affection !== undefined || s.outfit || s.activity;
+
+        let inj = `\n\n[状态栏系统] 每次回复时，请在正文内容之前先输出角色当前状态块，格式严格如下（不要多余空行或说明文字）：
+<<STATUS>>
+location:（当前所在位置）
+mood:（当前心情，纯文字描述）
+affection:（对用户的好感度，-100到100的整数）
+outfit:（当前穿着）
+activity:（当前在做什么）
+<<END_STATUS>>
+然后再输出正常对话内容。如果某项没有变化，保持上次的值不变。`;
+
+        if (hasAny) {
+            inj += `\n\n当前已知状态（请基于此续写，不要随意改变）：`;
+            if (s.location)            inj += `\n- 位置：${s.location}`;
+            if (s.mood)                inj += `\n- 心情：${s.mood}`;
+            if (s.affection !== undefined) inj += `\n- 好感度：${s.affection}`;
+            if (s.outfit)              inj += `\n- 穿着：${s.outfit}`;
+            if (s.activity)            inj += `\n- 当前在做：${s.activity}`;
+        }
+
+        return inj;
+    }
+
+    // ---- 抽屉 UI ----
+    let _statusDrawerOpen = false;
+
+    function statusToggleDrawer() {
+        const drawer = document.getElementById('status-drawer');
+        if (!drawer) return;
+        _statusDrawerOpen = !_statusDrawerOpen;
+        if (_statusDrawerOpen) {
+            statusRenderDrawer();
+            drawer.style.maxHeight = '200px';
+        } else {
+            drawer.style.maxHeight = '0';
+        }
+    }
+
+    function statusRenderDrawer() {
+        const s = statusLoad();
+        const set = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val || '—';
+        };
+        set('sd-location', s.location);
+        set('sd-mood', s.mood);
+        set('sd-affection', s.affection !== undefined ? affectionLabel(s.affection) : '');
+        set('sd-outfit', s.outfit);
+        set('sd-activity', s.activity);
+    }
+
+    // ---- 手动编辑字段 ----
+    let _statusEditingField = null;
+
+    const STATUS_FIELD_META = {
+        location:  { label: '所在位置', hint: '例如：咖啡馆二楼靠窗', type: 'text' },
+        mood:      { label: '心情',     hint: '例如：有些紧张，期待', type: 'text' },
+        affection: { label: '好感度',   hint: '整数，-100（厌恶）到 100（此生不渝）', type: 'number' },
+        outfit:    { label: '穿着',     hint: '例如：白色毛衣、牛仔裤', type: 'text' },
+        activity:  { label: '当前在做', hint: '例如：翻看手机', type: 'text' },
+    };
+
+    function statusEditField(field) {
+        const meta = STATUS_FIELD_META[field];
+        if (!meta) return;
+        _statusEditingField = field;
+        const s = statusLoad();
+        document.getElementById('status-edit-label').textContent = meta.label;
+        document.getElementById('status-edit-hint').textContent = meta.hint;
+        const input = document.getElementById('status-edit-input');
+        input.type = meta.type;
+        input.value = s[field] !== undefined ? s[field] : '';
+        document.getElementById('status-edit-modal').style.display = 'flex';
+        setTimeout(() => input.focus(), 100);
+    }
+
+    function statusEditCancel() {
+        document.getElementById('status-edit-modal').style.display = 'none';
+        _statusEditingField = null;
+    }
+
+    function statusEditConfirm() {
+        if (!_statusEditingField) return;
+        const val = document.getElementById('status-edit-input').value.trim();
+        const s = statusLoad();
+        if (_statusEditingField === 'affection') {
+            const n = parseInt(val);
+            s.affection = isNaN(n) ? 0 : Math.max(-100, Math.min(100, n));
+        } else {
+            s[_statusEditingField] = val;
+        }
+        statusSave(s);
+        statusRenderDrawer();
+        statusEditCancel();
+    }
+
+    // Enter 键确认
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && document.getElementById('status-edit-modal')?.style.display === 'flex') {
+            statusEditConfirm();
+        }
+    });
+
+    // 切换角色时重置抽屉
+    const _origSwitchToChar_status = window.switchToCharacter;
+    if (_origSwitchToChar_status) {
+        window.switchToCharacter = function(...args) {
+            _origSwitchToChar_status.apply(this, args);
+            _statusDrawerOpen = false;
+            const drawer = document.getElementById('status-drawer');
+            if (drawer) drawer.style.maxHeight = '0';
+            setTimeout(statusRenderDrawer, 100);
+        };
+    }
+
+
+        async function filterMemoriesBySmallModel(recentUserContent, allEvents) {
+        const moId = localStorage.getItem('moActiveId') || '';
+        let list = [];
+        try { list = JSON.parse(localStorage.getItem('apiProviders') || '[]'); } catch(e) {}
+        const p = moId ? list.find(x => x.id === moId) : null;
+        const moUrl = (p?.url || '').replace(/\/$/, '');
+        const moKey = p?.key || '';
+        const moModel = localStorage.getItem('moModelname') || '';
+        
+        console.log('🔍 记忆优化配置检查:', {
+            moId,
+            找到的服务商: p?.name || '无',
+            moUrl,
+            moKey: moKey ? '已设置' : '未设置',
+            moModel
+        });
+        
+        if (!moUrl || !moKey || !moModel) {
+            // 记忆优化小模型未配置，静默回退到全量记忆
+            const missing = [];
+            if (!moUrl) missing.push('服务商URL');
+            if (!moKey) missing.push('API Key');
+            if (!moModel) missing.push('模型名称');
+            throw new Error(`记忆优化配置不完整，缺少: ${missing.join('、')}`);
+        }
+
+        const today = new Date(); today.setHours(0,0,0,0);
+        const yest  = new Date(today); yest.setDate(today.getDate()-1);
+
+        const summaries = allEvents.map((e,i)=>{
+            const score = (e.importance||1)*(e.mention_count||1);
+            return `[${i}] ${e.title} | 最后提及:${e.last_mentioned} | 提及:${e.mention_count||1} | 重要度:${e.importance||1} | 分:${score}`;
+        }).join('\n');
+
+        // 判断是否同时需要联网判断
+        const alsoJudgeWeb = localStorage.getItem('webSearchEnabled') === '1';
+
+        let prompt;
+        if (alsoJudgeWeb) {
+            prompt = `你同时负责两件事：①从记忆列表选出最相关条目；②判断用户消息是否需要联网搜索实时信息。
+只返回JSON对象，不要任何解释。
+
+记忆筛选规则：
+1. 最多选5条最相关记忆
+2. 最后提及为今天(${today.toLocaleDateString('zh-CN')})或昨天(${yest.toLocaleDateString('zh-CN')})的必须全部包含
+3. 不足5条时，补充"重要度×提及次数"最高的前3条
+4. 若无相关记忆，只返回今天/昨天的；若也没有，返回分数前3名
+
+联网判断规则：
+- 用户询问实时信息（天气、新闻、价格、赛事、股票等）→ need_web: true
+- 普通聊天、情感交流、角色扮演、询问历史知识 → need_web: false
+- 若需要联网，提供精简的中文搜索关键词
+
+用户最新消息：${recentUserContent}
+
+记忆列表：
+${summaries}
+
+返回格式（严格遵守）：
+{"indices":[0,2,5],"need_web":false,"search_query":""}
+或
+{"indices":[1],"need_web":true,"search_query":"今日上海天气"}`;
+        } else {
+            prompt = `你是记忆筛选助手，根据用户最新消息从记忆列表中选出最相关条目，只返回JSON索引数组，不要任何解释。
+
+规则（严格执行）：
+1. 最多选5条最相关记忆
+2. 最后提及为今天(${today.toLocaleDateString('zh-CN')})或昨天(${yest.toLocaleDateString('zh-CN')})的必须全部包含
+3. 不足5条时，补充"重要度×提及次数"最高的前3条
+4. 若无相关记忆，只返回今天/昨天的；若也没有，返回分数前3名
+
+用户最新消息：${recentUserContent}
+
+记忆列表：
+${summaries}
+
+只返回JSON数组如：[0,2,5]`;
+        }
+
+        console.log('[MO] 发送给记忆优化小模型的prompt（联网判断:', alsoJudgeWeb, ')');
+        console.log('[MO] 用户消息:', recentUserContent.substring(0, 50) + '...');
+
+        const resp = await fetch(moUrl+'/chat/completions', {
+            method:'POST',
+            headers:{'Content-Type':'application/json','Authorization':`Bearer ${moKey}`},
+            body: JSON.stringify({ model:moModel, max_tokens:150, messages:[{role:'user',content:prompt}] })
+        });
+        const data = await resp.json();
+        const raw = data.choices?.[0]?.message?.content?.trim()||'[]';
+        console.log('[MO] 小模型原始返回:', raw);
+
+        const cleaned = raw.replace(/```json|```/g,'').trim();
+
+        if (alsoJudgeWeb) {
+            const result = JSON.parse(cleaned);
+            if (result.need_web && result.search_query) {
+                window._pendingWebSearchQuery = result.search_query;
+                window._pendingWebSearchDecided = true;
+                console.log('[MO] 小模型决定联网，搜索词:', result.search_query);
+            } else {
+                window._pendingWebSearchQuery = null;
+                window._pendingWebSearchDecided = true;
+                console.log('[MO] 小模型决定不联网');
+            }
+            const indices = Array.isArray(result.indices) ? result.indices : [];
+            return indices.filter(i=>i>=0&&i<allEvents.length).map(i=>allEvents[i]);
+        } else {
+            const indices = JSON.parse(cleaned);
+            if (!Array.isArray(indices)) throw new Error('返回格式错误');
+            console.log('[MO] 小模型选择的索引:', indices);
+            return indices.filter(i=>i>=0&&i<allEvents.length).map(i=>allEvents[i]);
+        }
+    }
+
+    // ===== 联网搜索相关函数 =====
+
+    async function callWebSearchIfNeeded(recentUserContent) {
+        const webEnabled = localStorage.getItem('webSearchEnabled') === '1';
+        if (!webEnabled) return null;
+
+        const moEnabled = localStorage.getItem('memoryOptimizeEnabled') === '1';
+
+        let needWeb = false;
+        let searchQuery = '';
+
+        if (moEnabled && window._pendingWebSearchDecided) {
+            needWeb = !!window._pendingWebSearchQuery;
+            searchQuery = window._pendingWebSearchQuery || '';
+            window._pendingWebSearchDecided = false;
+            window._pendingWebSearchQuery = null;
+        } else {
+            const judgeResult = await judgeWebSearchBySmallModel(recentUserContent);
+            needWeb = judgeResult.need_web;
+            searchQuery = judgeResult.search_query || '';
+        }
+
+        if (!needWeb || !searchQuery) {
+            console.log('[WebSearch] 不需要联网');
+            return null;
+        }
+
+        console.log('[WebSearch] 需要联网，搜索词:', searchQuery);
+        return await callWebModel(searchQuery, recentUserContent);
+    }
+
+    async function judgeWebSearchBySmallModel(recentUserContent) {
+        const judgeId = localStorage.getItem('webJudgeActiveId') || '';
+        let list = [];
+        try { list = JSON.parse(localStorage.getItem('apiProviders') || '[]'); } catch(e) {}
+        const p = judgeId ? list.find(x => x.id === judgeId) : null;
+        const judgeUrl = (p?.url || '').replace(/\/$/, '');
+        const judgeKey = p?.key || '';
+        const judgeModel = localStorage.getItem('webJudgeModelname') || '';
+
+        if (!judgeUrl || !judgeKey || !judgeModel) {
+            console.warn('[WebSearch] 判断小模型未配置，默认联网');
+            return { need_web: true, search_query: recentUserContent.slice(0, 60) };
+        }
+
+        const prompt = `判断下面这条消息是否需要联网搜索实时信息。只返回JSON，不要解释。
+规则：用户询问天气、新闻、价格、赛事、股票等实时信息 → need_web:true；普通聊天/情感/角色扮演/历史知识 → need_web:false。
+消息：${recentUserContent}
+格式：{"need_web":false,"search_query":""}`;
+
+        try {
+            const resp = await fetch(judgeUrl + '/chat/completions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${judgeKey}` },
+                body: JSON.stringify({ model: judgeModel, max_tokens: 80, messages: [{ role: 'user', content: prompt }] })
+            });
+            const data = await resp.json();
+            const raw = data.choices?.[0]?.message?.content?.trim() || '{"need_web":false,"search_query":""}';
+            console.log('[WebSearch] 判断小模型返回:', raw);
+            return JSON.parse(raw.replace(/```json|```/g, '').trim());
+        } catch(e) {
+            console.warn('[WebSearch] 判断小模型失败，默认不联网:', e.message);
+            return { need_web: false, search_query: '' };
+        }
+    }
+
+    async function callWebModel(searchQuery, userMessage) {
+        const webId = localStorage.getItem('webActiveId') || '';
+        let list = [];
+        try { list = JSON.parse(localStorage.getItem('apiProviders') || '[]'); } catch(e) {}
+        const p = webId ? list.find(x => x.id === webId) : null;
+        const webUrl = (p?.url || '').replace(/\/$/, '');
+        const webKey = p?.key || '';
+        const webModel = localStorage.getItem('webModelname') || '';
+
+        if (!webUrl || !webKey || !webModel) {
+            throw new Error('联网模型未配置（缺少服务商或模型名）');
+        }
+
+        const webApiUrl = webUrl.endsWith('/v1') ? `${webUrl}/chat/completions` : `${webUrl}/v1/chat/completions`;
+        console.log('[DEBUG] 联网模型API请求 - URL:', webApiUrl, '- model:', webModel, '- query:', searchQuery);
+
+        const resp = await fetch(webApiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${webKey}` },
+            body: JSON.stringify({
+                model: webModel,
+                max_tokens: 1000,
+                messages: [
+                    { role: 'system', content: '你是联网搜索助手。根据用户的搜索关键词，搜索并整理相关实时信息，用简洁的中文输出关键信息，不超过300字。' },
+                    { role: 'user', content: `搜索：${searchQuery}\n\n原始问题：${userMessage}` }
+                ]
+            })
+        });
+
+        if (!resp.ok) {
+            const err = await resp.text();
+            throw new Error(`联网模型请求失败: ${resp.status} - ${err.slice(0, 100)}`);
+        }
+
+        const data = await resp.json();
+        const result = data.choices?.[0]?.message?.content?.trim() || '';
+        console.log('[WebSearch] 联网模型返回结果（前200字）:', result.slice(0, 200));
+        return result;
+    }
+    </script>
+
+    <!-- ===== 联网功能 Beta ===== -->
+    <script>
+    (function() {
+        function syncWebUI(enabled) {
+            const slider = document.getElementById('web-search-slider');
+            const knob   = document.getElementById('web-search-knob');
+            const cfg    = document.getElementById('web-search-config');
+            if (!slider) return;
+            slider.style.background = enabled ? '#2196F3' : '#ccc';
+            knob.style.left = enabled ? '23px' : '3px';
+            if (cfg) cfg.style.display = enabled ? 'block' : 'none';
+        }
+
+        function initWebSearchUI() {
+            const toggle = document.getElementById('web-search-toggle');
+            if (!toggle) return;
+            const enabled = localStorage.getItem('webSearchEnabled') === '1';
+            toggle.checked = enabled;
+            syncWebUI(enabled);
+            toggle.addEventListener('change', () => {
+                localStorage.setItem('webSearchEnabled', toggle.checked ? '1' : '0');
+                syncWebUI(toggle.checked);
+            });
+
+            // 联网模型选择
+            const webSel = document.getElementById('web-modelname');
+            if (webSel) {
+                webSel.addEventListener('change', () => {
+                    localStorage.setItem('webModelname', webSel.value);
+                    if (webSel.value) showToast('已保存联网模型: ' + webSel.value);
+                });
+                const saved = localStorage.getItem('webModelname') || '';
+                if (saved) {
+                    let opt = webSel.querySelector(`option[value="${CSS.escape(saved)}"]`);
+                    if (!opt) { opt = document.createElement('option'); opt.value = saved; opt.textContent = saved; webSel.appendChild(opt); }
+                    webSel.value = saved;
+                }
+            }
+
+            // 判断小模型选择
+            const judgeSel = document.getElementById('web-judge-modelname');
+            if (judgeSel) {
+                judgeSel.addEventListener('change', () => {
+                    localStorage.setItem('webJudgeModelname', judgeSel.value);
+                    if (judgeSel.value) showToast('已保存判断模型: ' + judgeSel.value);
+                });
+                const savedJ = localStorage.getItem('webJudgeModelname') || '';
+                if (savedJ) {
+                    let opt = judgeSel.querySelector(`option[value="${CSS.escape(savedJ)}"]`);
+                    if (!opt) { opt = document.createElement('option'); opt.value = savedJ; opt.textContent = savedJ; judgeSel.appendChild(opt); }
+                    judgeSel.value = savedJ;
+                }
+            }
+
+            if (window._webPopulate) _webPopulate();
+            if (window._webJudgePopulate) _webJudgePopulate();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWebSearchUI);
+        } else {
+            initWebSearchUI();
+        }
+
+        const _origOpen = window.openSettings;
+        window.openSettings = function() {
+            if (_origOpen) _origOpen.apply(this, arguments);
+            setTimeout(function() {
+                initWebSearchUI();
+                if (window._webPopulate) _webPopulate();
+                if (window._webJudgePopulate) _webJudgePopulate();
+            }, 50);
+        };
+    })();
+
+    // 联网模型服务商列表
+    function _webPopulate() {
 
 </body>
 </html>

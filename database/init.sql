@@ -88,11 +88,36 @@ CREATE TABLE IF NOT EXISTS messages (
     role ENUM('user', 'assistant') NOT NULL,
     content TEXT NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    seq INT DEFAULT 0 COMMENT '消息顺序号，同角色内单调递增',
     metadata JSON COMMENT '消息元数据',
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_character (user_id, character_id),
+    INDEX idx_user_char_seq (user_id, character_id, seq),
     INDEX idx_timestamp (timestamp),
     INDEX idx_message_id (message_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 钱包表（余额 + 流水）
+CREATE TABLE IF NOT EXISTS wallets (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL UNIQUE,
+    balance DECIMAL(12,2) NOT NULL DEFAULT 200.00 COMMENT '当前余额',
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    character_id VARCHAR(100) COMMENT '相关角色（可空）',
+    type ENUM('in','out') NOT NULL COMMENT 'in=收入 out=支出',
+    amount DECIMAL(12,2) NOT NULL,
+    note VARCHAR(255),
+    from_name VARCHAR(100) COMMENT '对方名称',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_user_created (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Push订阅表
